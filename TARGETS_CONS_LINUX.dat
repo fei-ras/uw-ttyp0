@@ -1,0 +1,144 @@
+# The UW ttyp0 fonts come in thirteen sizes (from 11px to 80px) and
+# three styles (regular, bold, italic), and can be installed for
+# more than 30 character encodings ("code pages").
+#
+# Edit this file to specify which of the resulting size/style/codeset
+# combinations you want.
+#
+# **********************************************************************
+#
+# SIZES AND STYLES:
+#
+# The following combinations of font size and style are available:
+#
+#     Regular: 11  12  13  14  15  16  17  18  22  30  40  60  80
+#     Bold:    11b 12b 13b 14b 15b 16b 17b 18b 22b 30b 40b 60b 80b
+#     Italic:                  15i 16i 17i 18i     30i 40i 60i 60i
+#
+# The 60px and 80px fonts are obtained from the 30px and 40px fonts by
+# naive scaling using bdfresize. These fonts are intended only for high
+# resolution displays. At low resolutions, they are noticably blocky.
+#
+# Font sizes 40, 60, and 80 require Linux kernel version 6.9 (May 2024)
+# or later. Earlier Linux kernel versions support only console fonts
+# up to height 32.
+# 
+# The default includes all regular fonts from size 11 to 30 and the
+# bold fonts from size 15 to 18. If you want more or less, change the
+# following line accordingly:
+
+SIZES_CONS_LINUX = 11 12 13 14 15 16 17 18 22 30 15b 16b 17b 18b
+
+# **********************************************************************
+#
+# CODESETS:
+# 
+# The Linux console supports fonts with upto 512 glyphs. However, the
+# full set of console colors (eight regular and eight bright colors)
+# is only available if the number of glyphs in the current font does
+# not exceed 256. If a font that contains more than 256 glyphs is used,
+# the eight bright colors are lost.
+# 
+# UW ttyp0 can be installed on the Linux console with numerous 256-glyph
+# and 512-glyph codesets. Check doc/LinuxCodeSets.html for the details
+# of the codesets.
+# 
+# 256 glyphs:
+# 
+#   WET, WCE, CEu, Bal, Sam, NWE, SEu, GkC, GkW, EEC, EEW, EEA, HbR,
+#   HbW, Arm, Geo, AfP, AfS, AfU, MSA, Tha, Vie, SAO, 437, 775, 850,
+#   852, 857, 860, 861, 862, 863, 865, DGk, DCW, DCE, maz, kam, cwi,
+#   Koi, MIK, Brl
+# 
+# 512 glyphs:
+# 
+#   WEur_{M,C,P,L}, CEur_{M,C,P,L}, NEur_{M,C,P,L}, EECA_{M,C,P,L},
+#   Hebr_{M,C,P,L}, Armn_{M,C,P,L}, Geor_{M,C,P,L}, NAfr_{M,C,P,L},
+#   AfrP_{M,C,P,L}, AfrU_{M,C,P,L}, NAme_{M,C,P,L}, BCWa_{M,C,P,L},
+#   MSAm_{M,C,P,L}, Thai_{M,C,P,L}, Viet_{M,C,P,L}, SEAO_{M,C,P,L},
+#   Espr_{M,C,P,L}, NWEu_{M,C,P,L}, AAEGGH, OldCyr, PolyGk,
+#   WET_Brl, WCE_Brl, CEu_Brl, Bal_Brl, Sam_Brl, NWE_Brl, SEu_Brl,
+#   GkC_Brl, GkW_Brl, EEC_Brl, EEW_Brl, EEA_Brl, HbR_Brl, HbW_Brl,
+#   Arm_Brl, Geo_Brl, AfP_Brl, AfS_Brl, AfU_Brl, MSA_Brl, Tha_Brl,
+#   Vie_Brl, SAO_Brl, 437_Brl, 775_Brl, 850_Brl, 852_Brl, 857_Brl,
+#   860_Brl, 861_Brl, 862_Brl, 863_Brl, 865_Brl, DGk_Brl, DCW_Brl,
+#   DCE_Brl, maz_Brl, kam_Brl, cwi_Brl, Koi_Brl, MIK_Brl
+# 
+# The default includes WET, WCE, and CEur_L. If you want others, change
+# the following line accordingly.
+
+CODESETS_CONS_LINUX = WET WCE CEur_L
+
+# **********************************************************************
+# 
+# Different Linux distributions use different naming conventions for
+# console fonts. The UW ttyp0 fonts can be installed with the following
+# three naming conventions:
+# 
+# "standard"
+#
+#   With the naming convention "standard" the names of installed font
+#   files have the form
+#
+#       CODESET-Ttyp0(Regular|Bold|Italic)HEIGHTxWIDTH.psf.gz
+#
+#   for instance NEur_L-Ttyp0Regular16x8.psf.gz for a regular 8x16 font
+#   using the NEur_L codeset, or 437-Ttyp0Bold-18x9.psf.gz for a bold
+#   9x18 font with the 437 codeset.
+#
+# "psfu"
+# 
+#   The naming convention "psfu" is similar to the naming convention
+#   "standard", except that the suffix "psf.gz" is replaced by "psfu.gz".
+#   Some Linux distributions use the psfu suffix to distinguish console
+#   fonts that include a Unicode mapping table from console fonts that
+#   don't.
+#
+# "console-setup"
+#
+#   Some Linux distributions rely on the console-setup package to
+#   determine a suitable console font. The naming convention used by
+#   console-setup is similar to "standard", but it has a weird exception
+#   for fonts with width 8, where the file names have the form
+#
+#       CODESET-Ttyp0(Regular|Bold|Italic)HEIGHT.psf.gz
+#     
+#   (that is, "xWIDTH" is omitted if WIDTH equals 8). The example
+#   fonts above would then be named NEur_L-Ttyp0Regular16.psf.gz and
+#   437-Ttyp0Bold-18x9.psf.gz. 
+#
+#   Furthermore, the console-setup package uses some predefined codeset
+#   names for codeset guessing. If the "console-setup" naming
+#   convention is chosen, those ttyp0 codeset names for which there
+#   is a corresponding console-setup codeset name are replaced by the
+#   latter upon installation:
+#
+#     UW ttyp0     | console-setup        UW ttyp0     | console-setup
+#     codeset name | codeset name         codeset name | codeset name
+#     ============================        ============================
+#     Arm          | Armenian             Koi          | CyrKoi
+#     EEA          | CyrAsia              Bal          | Lat7
+#     EEC          | CyrSlav              SEu          | Lat38
+#     Geo          | Georgian             Tha          | Thai
+#     GkW          | Greek                WCE          | Lat2
+#     HbW          | Hebrew               WET          | Lat15
+#     -------------+--------------        -------------+--------------
+#     CEur_L       | Uni2                 Hebr_L       | Uni1
+#     EECA_L       | Uni3                 Viet_L       | Vietnamese
+#
+#   For instance, a regular 8x16 font for the CEur_L codeset would
+#   be installed using the name Uni2-Ttyp0Regular16.psf.gz instead of
+#   CEur_L-Ttyp0Regular16.psf.gz, and a bold 9x18 font for the WET
+#   codeset would be installed as Lat15-Ttyp0Bold-18x9.psf.gz instead
+#   of WET-Ttyp0Bold-18x9.psf.gz. Codeset names for which there is
+#   no corresponding console-setup codeset name are left unchanged.
+#   (Note that the CODESETS_CONS_LINUX line above must contain the
+#   UW ttyp0 codeset name, not the console-setup codeset name, even
+#   if the "console-setup" naming convention is used.)
+#
+# "configure" tries to determine a suitable naming convention
+# automatically. To select a naming convention manually, run "configure"
+# with the option "--conslinuxnaming=standard", "--conslinuxnaming=psfu",
+# or "--conslinuxnaming=console-setup".
+# 
+# **********************************************************************

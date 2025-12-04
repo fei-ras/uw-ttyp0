@@ -1,0 +1,880 @@
+# uppercase variables can be overwritten by
+# ./configure --VAR=VALUE or ./configure VAR=VALUE
+# (in the configure option, VAR is *case-insensitive*)
+
+SHELL           = /bin/sh
+PERL            = perl
+BDFMANGLE       = $(PERL) bin/bdfmangle
+MKSHALLOW       = $(PERL) bin/mkshallow
+BDFTOBSDH       = $(PERL) bin/bdftobsdh
+BDFTOSYSCONS    = $(PERL) bin/bdftosyscons
+BDFRESIZE       = bdfresize
+BDFTOPCF        = bdftopcf
+FONTTOSFNT      = fonttosfnt
+BDFTOEQUIV      = $(PERL) bin/bdftoequiv
+BDFTOREP        = $(PERL) bin/bdftorep
+BDF2PSF         = bdf2psf
+VTFONTCVT       = vtfontcvt
+
+PREFIX          = /usr
+BINDIR          = $(PREFIX)/bin
+MANDIR          = $(PREFIX)/man
+DOCDIR          = $(PREFIX)/share/doc/fonts-uw-ttyp0
+PCFDIR          = $(PREFIX)/share/fonts/X11/misc
+OTBDIR          = nodefault---default-is-determined-by-configure
+                # There does not seem to be any standard for this.
+CONSLINUXDIR    = nodefault---default-is-determined-by-configure
+                # Directory names vary among different Linux distributions;
+                #   the general pattern is
+                #   /(usr)?/(share)?/(lib)?/(kbd)?/consolefonts
+                # /lib/kbd/consolefonts (RedHat, possibly Fedora)
+                # /usr/lib/kbd/consolefonts (PS2 Linux, CentOS, possibly Fedora)
+                # /usr/share/consolefonts (Debian. Ubuntu, Gentoo, Sourcemage)
+                # /usr/share/kbd/consolefonts (openSUSE, Arch, Slackware)
+                # /share/consolefonts (nixOS)
+CONSLINUXNAMING = nodefault---default-is-determined-by-configure
+                # Possible values:
+                #   standard: use names of the form
+                #     CODESET-Ttyp0(Regular|Bold|Italic)HEIGHTxWIDTH.psf.gz
+                #   psfu: like standard, but use suffix .psfu.gz instead
+                #     of .psf.gz
+                #   console-setup: like standard, but omit "xWIDTH" if
+                #     WIDTH equals 8
+CONSFBSDVTDIR   = $(PREFIX)/share/vt/fonts
+CONSFBSDSCDIR   = $(PREFIX)/share/syscons/fonts
+CONSNBSDDIR     = $(PREFIX)/src/sys/dev/wsfont
+CONSOBSDDIR     = $(PREFIX)/src/sys/dev/wsfont
+
+
+# ------------------------------------------------------------------------
+# determine the desired font formats.
+# some of the GEN_* variables are set to 1 in TARGETS.dat:
+
+include TARGETS.dat
+
+
+# ------------------------------------------------------------------------
+# determine sizes/styles/encodings for the desired font formats.
+# variables ENCODINGS_*, SIZES_*, STYLES_* are set in TARGETS_*.dat:
+
+ifeq ($(strip $(GEN_BDF)),1)
+  include TARGETS_BDF.dat
+  bdfpattern = genbdf/t0-$(s)-$(e).bdf
+  bdf := $(foreach e, $(ENCODINGS_BDF), $(foreach s, $(SIZES_BDF), $(bdfpattern)))
+endif
+
+ifeq ($(strip $(GEN_PCF)),1)
+  include TARGETS_PCF.dat
+  pcfpattern = genpcf/t0-$(s)-$(e).pcf.gz
+  pcf := $(foreach e, $(ENCODINGS_PCF), $(foreach s, $(SIZES_PCF), $(pcfpattern)))
+endif
+
+ifeq ($(strip $(GEN_OTB)),1)
+  include TARGETS_OTB.dat
+  otbregularpattern = genotb/UW-Ttyp0-$(s)-Regular.otb
+  otbboldpattern = genotb/UW-Ttyp0-$(s)-Bold.otb
+  otbitalicpattern = genotb/UW-Ttyp0-$(s)-Italic.otb
+  otb := $(foreach s, $(filter-out %b %i, $(SIZES_OTB)), $(otbregularpattern)) $(foreach s, $(subst b,,$(filter %b, $(SIZES_OTB))), $(otbboldpattern)) $(foreach s, $(subst i,,$(filter %i, $(SIZES_OTB))), $(otbitalicpattern))
+endif
+
+ifeq ($(strip $(GEN_CONS_LINUX)),1)
+  include TARGETS_CONS_LINUX.dat
+  conslinuxpattern = genconslinux/Ttyp0-$(s)-$(e).psf.gz
+  conslinux := $(foreach e, $(CODESETS_CONS_LINUX), $(foreach s, $(SIZES_CONS_LINUX), $(conslinuxpattern)))
+endif
+
+ifeq ($(strip $(GEN_CONS_FREEBSD_VT)),1)
+  include TARGETS_CONS_FREEBSD_VT.dat
+  consfreebsdvtpattern = genconsfreebsdvt/ttyp0-$(s).fnt
+  consfreebsdvt := $(foreach s, $(SIZES_CONS_FREEBSD_VT), $(consfreebsdvtpattern))
+endif
+
+ifeq ($(strip $(GEN_CONS_FREEBSD_SC)),1)
+  include TARGETS_CONS_FREEBSD_SC.dat
+  consfreebsdscregularpattern = genconsfreebsdsc/ttyp0-r-$(e)-8x$(s).fnt
+  consfreebsdscboldpattern = genconsfreebsdsc/ttyp0-b-$(e)-8x$(s).fnt
+  consfreebsdscitalicpattern = genconsfreebsdsc/ttyp0-i-$(e)-8x$(s).fnt
+  consfreebsdsc := $(foreach s, $(filter-out %b %i, $(SIZES_CONS_FREEBSD_SC)), $(foreach e, $(ENCODINGS_CONS_FREEBSD_SC), $(consfreebsdscregularpattern))) $(foreach s, $(subst b,,$(filter %b, $(SIZES_CONS_FREEBSD_SC))), $(foreach e, $(ENCODINGS_CONS_FREEBSD_SC), $(consfreebsdscboldpattern))) $(foreach s, $(subst i,,$(filter %i, $(SIZES_CONS_FREEBSD_SC))), $(foreach e, $(ENCODINGS_CONS_FREEBSD_SC), $(consfreebsdscitalicpattern)))
+endif
+
+ifeq ($(strip $(GEN_CONS_NETBSD)),1)
+  include TARGETS_CONS_NETBSD.dat
+  consnetbsdpattern = genconsnetbsd/ttyp0-$(s)-$(e).h
+  consnetbsd := $(foreach e, $(ENCODINGS_CONS_NETBSD), $(foreach s, $(SIZES_CONS_NETBSD), $(consnetbsdpattern)))
+endif
+
+ifeq ($(strip $(GEN_CONS_OPENBSD)),1)
+  include TARGETS_CONS_OPENBSD.dat
+  consopenbsdpattern = genconsopenbsd/ttyp0-$(s)-$(e).h
+  consopenbsd := $(foreach e, $(ENCODINGS_CONS_OPENBSD), $(foreach s, $(SIZES_CONS_OPENBSD), $(consopenbsdpattern)))
+endif
+
+
+# ------------------------------------------------------------------------
+# main targets
+
+all : $(bdf) $(pcf) $(otb) $(conslinux) $(consfreebsdvt) $(consfreebsdsc) $(consnetbsd) $(consopenbsd)
+
+bdf : $(bdf)
+
+pcf : $(pcf)
+
+otb : $(otb)
+
+conslinux : $(conslinux)
+
+consfreebsdvt : $(consfreebsdvt)
+
+consfreebsdsc : $(consfreebsdsc)
+
+consnetbsd : $(consnetbsd)
+
+consopenbsd : $(consopenbsd)
+
+
+# ------------------------------------------------------------------------
+# unicode bdf fonts
+
+genbdf/t0-11-uni.bdf : bdf/t0-11.bdf bdf/t0-12.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-12.bdf | cat - bdf/t0-11.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-11b-uni.bdf : bdf/t0-11b.bdf bdf/t0-12b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-12b.bdf | cat - bdf/t0-11b.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-12-uni.bdf : bdf/t0-12.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-12b-uni.bdf : bdf/t0-12b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-13-uni.bdf : bdf/t0-13.bdf bdf/t0-14.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-14.bdf | cat - bdf/t0-13.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-13b-uni.bdf : bdf/t0-13b.bdf bdf/t0-14b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-14b.bdf | cat - bdf/t0-13b.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-14-uni.bdf : bdf/t0-14.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-14b-uni.bdf : bdf/t0-14b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-15-uni.bdf : bdf/t0-15.bdf bdf/t0-16.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-16.bdf | cat - bdf/t0-15.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-15b-uni.bdf : bdf/t0-15b.bdf bdf/t0-16b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-16b.bdf | cat - bdf/t0-15b.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-15i-uni.bdf : bdf/t0-15i.bdf bdf/t0-16i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-16i.bdf | cat - bdf/t0-15i.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-16-uni.bdf : bdf/t0-16.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-16b-uni.bdf : bdf/t0-16b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-16i-uni.bdf : bdf/t0-16i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-17-uni.bdf : bdf/t0-17.bdf bdf/t0-18.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-18.bdf | cat - bdf/t0-17.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-17b-uni.bdf : bdf/t0-17b.bdf bdf/t0-18b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-18b.bdf | cat - bdf/t0-17b.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-17i-uni.bdf : bdf/t0-17i.bdf bdf/t0-18i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(MKSHALLOW) bdf/t0-18i.bdf | cat - bdf/t0-17i.bdf | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-18-uni.bdf : bdf/t0-18.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-18b-uni.bdf : bdf/t0-18b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-18i-uni.bdf : bdf/t0-18i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-22-uni.bdf : bdf/t0-22.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-22b-uni.bdf : bdf/t0-22b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-30-uni.bdf : bdf/t0-30.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-30b-uni.bdf : bdf/t0-30b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-30i-uni.bdf : bdf/t0-30i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-40-uni.bdf : bdf/t0-40.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-40b-uni.bdf : bdf/t0-40b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-40i-uni.bdf : bdf/t0-40i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFMANGLE) $< VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-60-uni.bdf : bdf/t0-30.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFRESIZE) -f 2 $< | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-60b-uni.bdf : bdf/t0-30b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFRESIZE) -f 2 $< | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-60i-uni.bdf : bdf/t0-30i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFRESIZE) -f 2 $< | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-80-uni.bdf : bdf/t0-40.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFRESIZE) -f 2 $< | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-80b-uni.bdf : bdf/t0-40b.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFRESIZE) -f 2 $< | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+genbdf/t0-80i-uni.bdf : bdf/t0-40i.bdf VARIANTS.dat mgl/unicode.mgl
+	$(BDFRESIZE) -f 2 $< | $(BDFMANGLE) - VARIANTS.dat mgl/unicode.mgl > $@
+
+
+# ------------------------------------------------------------------------
+# non-unicode bdf fonts (standard 8-bit character sets)
+
+genbdf/%-i01.bdf : genbdf/%-uni.bdf mgl/iso8859-1.mgl
+	$(BDFMANGLE) $< mgl/iso8859-1.mgl > $@
+genbdf/%-i02.bdf : genbdf/%-uni.bdf mgl/iso8859-2.mgl
+	$(BDFMANGLE) $< mgl/iso8859-2.mgl > $@
+genbdf/%-i03.bdf : genbdf/%-uni.bdf mgl/iso8859-3.mgl
+	$(BDFMANGLE) $< mgl/iso8859-3.mgl > $@
+genbdf/%-i05.bdf : genbdf/%-uni.bdf mgl/iso8859-5.mgl
+	$(BDFMANGLE) $< mgl/iso8859-5.mgl > $@
+genbdf/%-i07.bdf : genbdf/%-uni.bdf mgl/iso8859-7.mgl
+	$(BDFMANGLE) $< mgl/iso8859-7.mgl > $@
+genbdf/%-i08.bdf : genbdf/%-uni.bdf mgl/iso8859-8.mgl
+	$(BDFMANGLE) $< mgl/iso8859-8.mgl > $@
+genbdf/%-i09.bdf : genbdf/%-uni.bdf mgl/iso8859-9.mgl
+	$(BDFMANGLE) $< mgl/iso8859-9.mgl > $@
+genbdf/%-i10.bdf : genbdf/%-uni.bdf mgl/iso8859-10.mgl
+	$(BDFMANGLE) $< mgl/iso8859-10.mgl > $@
+genbdf/%-i13.bdf : genbdf/%-uni.bdf mgl/iso8859-13.mgl
+	$(BDFMANGLE) $< mgl/iso8859-13.mgl > $@
+genbdf/%-i14.bdf : genbdf/%-uni.bdf mgl/iso8859-14.mgl
+	$(BDFMANGLE) $< mgl/iso8859-14.mgl > $@
+genbdf/%-i15.bdf : genbdf/%-uni.bdf mgl/iso8859-15.mgl
+	$(BDFMANGLE) $< mgl/iso8859-15.mgl > $@
+genbdf/%-i16.bdf : genbdf/%-uni.bdf mgl/iso8859-16.mgl
+	$(BDFMANGLE) $< mgl/iso8859-16.mgl > $@
+genbdf/%-m50.bdf : genbdf/%-uni.bdf mgl/microsoft-cp1250.mgl
+	$(BDFMANGLE) $< mgl/microsoft-cp1250.mgl > $@
+genbdf/%-m51.bdf : genbdf/%-uni.bdf mgl/microsoft-cp1251.mgl
+	$(BDFMANGLE) $< mgl/microsoft-cp1251.mgl > $@
+genbdf/%-m53.bdf : genbdf/%-uni.bdf mgl/microsoft-cp1253.mgl
+	$(BDFMANGLE) $< mgl/microsoft-cp1253.mgl > $@
+genbdf/%-m55.bdf : genbdf/%-uni.bdf mgl/microsoft-cp1255.mgl
+	$(BDFMANGLE) $< mgl/microsoft-cp1255.mgl > $@
+genbdf/%-m57.bdf : genbdf/%-uni.bdf mgl/microsoft-cp1257.mgl
+	$(BDFMANGLE) $< mgl/microsoft-cp1257.mgl > $@
+genbdf/%-m70.bdf : genbdf/%-uni.bdf mgl/microsoft-cp1270.mgl
+	$(BDFMANGLE) $< mgl/microsoft-cp1270.mgl > $@
+genbdf/%-k8r.bdf : genbdf/%-uni.bdf mgl/koi8-r.mgl
+	$(BDFMANGLE) $< mgl/koi8-r.mgl > $@
+genbdf/%-k8u.bdf : genbdf/%-uni.bdf mgl/koi8-u.mgl
+	$(BDFMANGLE) $< mgl/koi8-u.mgl > $@
+genbdf/%-k8t.bdf : genbdf/%-uni.bdf mgl/koi8-t.mgl
+	$(BDFMANGLE) $< mgl/koi8-t.mgl > $@
+genbdf/%-am8.bdf : genbdf/%-uni.bdf mgl/armscii-8.mgl
+	$(BDFMANGLE) $< mgl/armscii-8.mgl > $@
+genbdf/%-gep.bdf : genbdf/%-uni.bdf mgl/georgian-ps.mgl
+	$(BDFMANGLE) $< mgl/georgian-ps.mgl > $@
+genbdf/%-gea.bdf : genbdf/%-uni.bdf mgl/georgian-academy.mgl
+	$(BDFMANGLE) $< mgl/georgian-academy.mgl > $@
+genbdf/%-kaz.bdf : genbdf/%-uni.bdf mgl/kz-1048.mgl
+	$(BDFMANGLE) $< mgl/kz-1048.mgl > $@
+genbdf/%-154.bdf : genbdf/%-uni.bdf mgl/paratype-pt154.mgl
+	$(BDFMANGLE) $< mgl/paratype-pt154.mgl > $@
+genbdf/%-ti0.bdf : genbdf/%-uni.bdf mgl/tis620-0.mgl
+	$(BDFMANGLE) $< mgl/tis620-0.mgl > $@
+genbdf/%-ti2.bdf : genbdf/%-uni.bdf mgl/tis620-2.mgl
+	$(BDFMANGLE) $< mgl/tis620-2.mgl > $@
+genbdf/%-tcv.bdf : genbdf/%-uni.bdf mgl/tcvn-5712.mgl
+	$(BDFMANGLE) $< mgl/tcvn-5712.mgl > $@
+genbdf/%-vis.bdf : genbdf/%-uni.bdf mgl/viscii-1.1.mgl
+	$(BDFMANGLE) $< mgl/viscii-1.1.mgl > $@
+genbdf/%-102.bdf : genbdf/%-uni.bdf mgl/bpi_ocil-afrful102.mgl
+	$(BDFMANGLE) $< mgl/bpi_ocil-afrful102.mgl > $@
+genbdf/%-104.bdf : genbdf/%-uni.bdf mgl/bpi_ocil-afrlin104.mgl
+	$(BDFMANGLE) $< mgl/bpi_ocil-afrlin104.mgl > $@
+genbdf/%-csp.bdf : genbdf/%-uni.bdf mgl/csx-plus.mgl
+	$(BDFMANGLE) $< mgl/csx-plus.mgl > $@
+genbdf/%-437.bdf : genbdf/%-uni.bdf mgl/ibm-cp437.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp437.mgl > $@
+genbdf/%-737.bdf : genbdf/%-uni.bdf mgl/ibm-cp737.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp737.mgl > $@
+genbdf/%-775.bdf : genbdf/%-uni.bdf mgl/ibm-cp775.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp775.mgl > $@
+genbdf/%-850.bdf : genbdf/%-uni.bdf mgl/ibm-cp850.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp850.mgl > $@
+genbdf/%-852.bdf : genbdf/%-uni.bdf mgl/ibm-cp852.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp852.mgl > $@
+genbdf/%-855.bdf : genbdf/%-uni.bdf mgl/ibm-cp855.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp855.mgl > $@
+genbdf/%-857.bdf : genbdf/%-uni.bdf mgl/ibm-cp857.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp857.mgl > $@
+genbdf/%-860.bdf : genbdf/%-uni.bdf mgl/ibm-cp860.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp860.mgl > $@
+genbdf/%-861.bdf : genbdf/%-uni.bdf mgl/ibm-cp861.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp861.mgl > $@
+genbdf/%-862.bdf : genbdf/%-uni.bdf mgl/ibm-cp862.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp862.mgl > $@
+genbdf/%-863.bdf : genbdf/%-uni.bdf mgl/ibm-cp863.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp863.mgl > $@
+genbdf/%-865.bdf : genbdf/%-uni.bdf mgl/ibm-cp865.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp865.mgl > $@
+genbdf/%-866.bdf : genbdf/%-uni.bdf mgl/ibm-cp866.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp866.mgl > $@
+genbdf/%-869.bdf : genbdf/%-uni.bdf mgl/ibm-cp869.mgl
+	$(BDFMANGLE) $< mgl/ibm-cp869.mgl > $@
+genbdf/%-maz.bdf : genbdf/%-uni.bdf mgl/mazovia.mgl
+	$(BDFMANGLE) $< mgl/mazovia.mgl > $@
+genbdf/%-kam.bdf : genbdf/%-uni.bdf mgl/kamenicky.mgl
+	$(BDFMANGLE) $< mgl/kamenicky.mgl > $@
+genbdf/%-cwi.bdf : genbdf/%-uni.bdf mgl/cwi-2.mgl
+	$(BDFMANGLE) $< mgl/cwi-2.mgl > $@
+genbdf/%-mik.bdf : genbdf/%-uni.bdf mgl/mik.mgl
+	$(BDFMANGLE) $< mgl/mik.mgl > $@
+genbdf/%-sym.bdf : genbdf/%-uni.bdf mgl/adobe-symbol.mgl
+	$(BDFMANGLE) $< mgl/adobe-symbol.mgl > $@
+
+
+# ------------------------------------------------------------------------
+# non-unicode bdf fonts
+# (Linux console fonts with shared glyphs, 256 and 512 glyphs)
+
+genbdf/%-LC_437.bdf : genbdf/%-uni.bdf mgl/conslinux-256/437.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/437.mgl > $@
+genbdf/%-LC_775.bdf : genbdf/%-uni.bdf mgl/conslinux-256/775.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/775.mgl > $@
+genbdf/%-LC_850.bdf : genbdf/%-uni.bdf mgl/conslinux-256/850.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/850.mgl > $@
+genbdf/%-LC_852.bdf : genbdf/%-uni.bdf mgl/conslinux-256/852.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/852.mgl > $@
+genbdf/%-LC_857.bdf : genbdf/%-uni.bdf mgl/conslinux-256/857.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/857.mgl > $@
+genbdf/%-LC_860.bdf : genbdf/%-uni.bdf mgl/conslinux-256/860.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/860.mgl > $@
+genbdf/%-LC_861.bdf : genbdf/%-uni.bdf mgl/conslinux-256/861.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/861.mgl > $@
+genbdf/%-LC_862.bdf : genbdf/%-uni.bdf mgl/conslinux-256/862.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/862.mgl > $@
+genbdf/%-LC_863.bdf : genbdf/%-uni.bdf mgl/conslinux-256/863.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/863.mgl > $@
+genbdf/%-LC_865.bdf : genbdf/%-uni.bdf mgl/conslinux-256/865.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/865.mgl > $@
+genbdf/%-LC_AfP.bdf : genbdf/%-uni.bdf mgl/conslinux-256/AfP.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/AfP.mgl > $@
+genbdf/%-LC_AfS.bdf : genbdf/%-uni.bdf mgl/conslinux-256/AfS.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/AfS.mgl > $@
+genbdf/%-LC_AfU.bdf : genbdf/%-uni.bdf mgl/conslinux-256/AfU.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/AfU.mgl > $@
+genbdf/%-LC_Arm.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Arm.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Arm.mgl > $@
+genbdf/%-LC_Bal.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Bal.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Bal.mgl > $@
+genbdf/%-LC_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_CEu.bdf : genbdf/%-uni.bdf mgl/conslinux-256/CEu.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/CEu.mgl > $@
+genbdf/%-LC_DCE.bdf : genbdf/%-uni.bdf mgl/conslinux-256/DCE.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/DCE.mgl > $@
+genbdf/%-LC_DCW.bdf : genbdf/%-uni.bdf mgl/conslinux-256/DCW.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/DCW.mgl > $@
+genbdf/%-LC_DGk.bdf : genbdf/%-uni.bdf mgl/conslinux-256/DGk.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/DGk.mgl > $@
+genbdf/%-LC_EEA.bdf : genbdf/%-uni.bdf mgl/conslinux-256/EEA.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/EEA.mgl > $@
+genbdf/%-LC_EEC.bdf : genbdf/%-uni.bdf mgl/conslinux-256/EEC.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/EEC.mgl > $@
+genbdf/%-LC_EEW.bdf : genbdf/%-uni.bdf mgl/conslinux-256/EEW.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/EEW.mgl > $@
+genbdf/%-LC_Geo.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Geo.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Geo.mgl > $@
+genbdf/%-LC_GkC.bdf : genbdf/%-uni.bdf mgl/conslinux-256/GkC.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/GkC.mgl > $@
+genbdf/%-LC_GkW.bdf : genbdf/%-uni.bdf mgl/conslinux-256/GkW.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/GkW.mgl > $@
+genbdf/%-LC_HbR.bdf : genbdf/%-uni.bdf mgl/conslinux-256/HbR.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/HbR.mgl > $@
+genbdf/%-LC_HbW.bdf : genbdf/%-uni.bdf mgl/conslinux-256/HbW.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/HbW.mgl > $@
+genbdf/%-LC_Koi.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Koi.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Koi.mgl > $@
+genbdf/%-LC_MIK.bdf : genbdf/%-uni.bdf mgl/conslinux-256/MIK.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/MIK.mgl > $@
+genbdf/%-LC_MSA.bdf : genbdf/%-uni.bdf mgl/conslinux-256/MSA.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/MSA.mgl > $@
+genbdf/%-LC_NWE.bdf : genbdf/%-uni.bdf mgl/conslinux-256/NWE.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/NWE.mgl > $@
+genbdf/%-LC_SAO.bdf : genbdf/%-uni.bdf mgl/conslinux-256/SAO.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/SAO.mgl > $@
+genbdf/%-LC_SEu.bdf : genbdf/%-uni.bdf mgl/conslinux-256/SEu.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/SEu.mgl > $@
+genbdf/%-LC_Sam.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Sam.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Sam.mgl > $@
+genbdf/%-LC_Tha.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Tha.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Tha.mgl > $@
+genbdf/%-LC_Vie.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Vie.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Vie.mgl > $@
+genbdf/%-LC_WCE.bdf : genbdf/%-uni.bdf mgl/conslinux-256/WCE.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/WCE.mgl > $@
+genbdf/%-LC_WET.bdf : genbdf/%-uni.bdf mgl/conslinux-256/WET.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/WET.mgl > $@
+genbdf/%-LC_cwi.bdf : genbdf/%-uni.bdf mgl/conslinux-256/cwi.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/cwi.mgl > $@
+genbdf/%-LC_kam.bdf : genbdf/%-uni.bdf mgl/conslinux-256/kam.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/kam.mgl > $@
+genbdf/%-LC_maz.bdf : genbdf/%-uni.bdf mgl/conslinux-256/maz.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/maz.mgl > $@
+
+genbdf/%-LC_AAEGGH.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AAEGGH.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AAEGGH.mgl > $@
+genbdf/%-LC_AfrP_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrP_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrP_C.mgl > $@
+genbdf/%-LC_AfrP_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrP_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrP_L.mgl > $@
+genbdf/%-LC_AfrP_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrP_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrP_M.mgl > $@
+genbdf/%-LC_AfrP_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrP_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrP_P.mgl > $@
+genbdf/%-LC_AfrU_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrU_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrU_C.mgl > $@
+genbdf/%-LC_AfrU_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrU_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrU_L.mgl > $@
+genbdf/%-LC_AfrU_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrU_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrU_M.mgl > $@
+genbdf/%-LC_AfrU_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/AfrU_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/AfrU_P.mgl > $@
+genbdf/%-LC_Armn_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Armn_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Armn_C.mgl > $@
+genbdf/%-LC_Armn_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Armn_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Armn_L.mgl > $@
+genbdf/%-LC_Armn_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Armn_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Armn_M.mgl > $@
+genbdf/%-LC_Armn_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Armn_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Armn_P.mgl > $@
+genbdf/%-LC_BCWa_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/BCWa_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/BCWa_C.mgl > $@
+genbdf/%-LC_BCWa_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/BCWa_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/BCWa_L.mgl > $@
+genbdf/%-LC_BCWa_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/BCWa_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/BCWa_M.mgl > $@
+genbdf/%-LC_BCWa_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/BCWa_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/BCWa_P.mgl > $@
+genbdf/%-LC_CEur_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/CEur_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/CEur_C.mgl > $@
+genbdf/%-LC_CEur_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/CEur_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/CEur_L.mgl > $@
+genbdf/%-LC_CEur_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/CEur_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/CEur_M.mgl > $@
+genbdf/%-LC_CEur_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/CEur_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/CEur_P.mgl > $@
+genbdf/%-LC_EECA_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/EECA_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/EECA_C.mgl > $@
+genbdf/%-LC_EECA_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/EECA_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/EECA_L.mgl > $@
+genbdf/%-LC_EECA_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/EECA_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/EECA_M.mgl > $@
+genbdf/%-LC_EECA_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/EECA_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/EECA_P.mgl > $@
+genbdf/%-LC_Espr_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Espr_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Espr_C.mgl > $@
+genbdf/%-LC_Espr_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Espr_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Espr_L.mgl > $@
+genbdf/%-LC_Espr_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Espr_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Espr_M.mgl > $@
+genbdf/%-LC_Espr_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Espr_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Espr_P.mgl > $@
+genbdf/%-LC_Geor_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Geor_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Geor_C.mgl > $@
+genbdf/%-LC_Geor_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Geor_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Geor_L.mgl > $@
+genbdf/%-LC_Geor_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Geor_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Geor_M.mgl > $@
+genbdf/%-LC_Geor_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Geor_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Geor_P.mgl > $@
+genbdf/%-LC_Hebr_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Hebr_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Hebr_C.mgl > $@
+genbdf/%-LC_Hebr_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Hebr_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Hebr_L.mgl > $@
+genbdf/%-LC_Hebr_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Hebr_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Hebr_M.mgl > $@
+genbdf/%-LC_Hebr_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Hebr_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Hebr_P.mgl > $@
+genbdf/%-LC_MSAm_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/MSAm_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/MSAm_C.mgl > $@
+genbdf/%-LC_MSAm_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/MSAm_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/MSAm_L.mgl > $@
+genbdf/%-LC_MSAm_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/MSAm_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/MSAm_M.mgl > $@
+genbdf/%-LC_MSAm_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/MSAm_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/MSAm_P.mgl > $@
+genbdf/%-LC_NAfr_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAfr_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAfr_C.mgl > $@
+genbdf/%-LC_NAfr_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAfr_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAfr_L.mgl > $@
+genbdf/%-LC_NAfr_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAfr_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAfr_M.mgl > $@
+genbdf/%-LC_NAfr_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAfr_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAfr_P.mgl > $@
+genbdf/%-LC_NAme_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAme_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAme_C.mgl > $@
+genbdf/%-LC_NAme_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAme_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAme_L.mgl > $@
+genbdf/%-LC_NAme_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAme_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAme_M.mgl > $@
+genbdf/%-LC_NAme_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NAme_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NAme_P.mgl > $@
+genbdf/%-LC_NEur_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NEur_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NEur_C.mgl > $@
+genbdf/%-LC_NEur_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NEur_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NEur_L.mgl > $@
+genbdf/%-LC_NEur_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NEur_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NEur_M.mgl > $@
+genbdf/%-LC_NEur_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NEur_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NEur_P.mgl > $@
+genbdf/%-LC_NWEu_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NWEu_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NWEu_C.mgl > $@
+genbdf/%-LC_NWEu_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NWEu_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NWEu_L.mgl > $@
+genbdf/%-LC_NWEu_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NWEu_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NWEu_M.mgl > $@
+genbdf/%-LC_NWEu_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/NWEu_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/NWEu_P.mgl > $@
+genbdf/%-LC_OldCyr.bdf : genbdf/%-uni.bdf mgl/conslinux-512/OldCyr.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/OldCyr.mgl > $@
+genbdf/%-LC_PolyGk.bdf : genbdf/%-uni.bdf mgl/conslinux-512/PolyGk.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/PolyGk.mgl > $@
+genbdf/%-LC_SEAO_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/SEAO_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/SEAO_C.mgl > $@
+genbdf/%-LC_SEAO_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/SEAO_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/SEAO_L.mgl > $@
+genbdf/%-LC_SEAO_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/SEAO_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/SEAO_M.mgl > $@
+genbdf/%-LC_SEAO_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/SEAO_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/SEAO_P.mgl > $@
+genbdf/%-LC_Thai_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Thai_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Thai_C.mgl > $@
+genbdf/%-LC_Thai_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Thai_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Thai_L.mgl > $@
+genbdf/%-LC_Thai_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Thai_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Thai_M.mgl > $@
+genbdf/%-LC_Thai_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Thai_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Thai_P.mgl > $@
+genbdf/%-LC_Viet_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Viet_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Viet_C.mgl > $@
+genbdf/%-LC_Viet_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Viet_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Viet_L.mgl > $@
+genbdf/%-LC_Viet_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Viet_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Viet_M.mgl > $@
+genbdf/%-LC_Viet_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/Viet_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/Viet_P.mgl > $@
+genbdf/%-LC_WEur_C.bdf : genbdf/%-uni.bdf mgl/conslinux-512/WEur_C.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/WEur_C.mgl > $@
+genbdf/%-LC_WEur_L.bdf : genbdf/%-uni.bdf mgl/conslinux-512/WEur_L.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/WEur_L.mgl > $@
+genbdf/%-LC_WEur_M.bdf : genbdf/%-uni.bdf mgl/conslinux-512/WEur_M.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/WEur_M.mgl > $@
+genbdf/%-LC_WEur_P.bdf : genbdf/%-uni.bdf mgl/conslinux-512/WEur_P.mgl
+	$(BDFMANGLE) $< mgl/conslinux-512/WEur_P.mgl > $@
+
+genbdf/%-LC_437_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/437.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/437.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_775_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/775.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/775.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_850_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/850.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/850.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_852_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/852.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/852.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_857_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/857.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/857.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_860_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/860.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/860.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_861_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/861.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/861.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_862_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/862.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/862.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_863_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/863.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/863.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_865_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/865.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/865.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_AfP_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/AfP.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/AfP.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_AfS_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/AfS.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/AfS.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_AfU_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/AfU.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/AfU.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Arm_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Arm.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Arm.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Bal_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Bal.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Bal.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_CEu_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/CEu.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/CEu.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_DCE_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/DCE.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/DCE.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_DCW_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/DCW.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/DCW.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_DGk_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/DGk.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/DGk.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_EEA_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/EEA.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/EEA.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_EEC_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/EEC.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/EEC.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_EEW_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/EEW.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/EEW.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Geo_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Geo.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Geo.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_GkC_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/GkC.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/GkC.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_GkW_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/GkW.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/GkW.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_HbR_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/HbR.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/HbR.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_HbW_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/HbW.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/HbW.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Koi_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Koi.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Koi.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_MIK_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/MIK.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/MIK.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_MSA_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/MSA.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/MSA.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_NWE_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/NWE.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/NWE.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_SAO_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/SAO.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/SAO.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_SEu_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/SEu.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/SEu.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Sam_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Sam.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Sam.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Tha_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Tha.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Tha.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_Vie_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/Vie.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/Vie.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_WCE_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/WCE.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/WCE.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_WET_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/WET.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/WET.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_cwi_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/cwi.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/cwi.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_kam_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/kam.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/kam.mgl mgl/conslinux-256/Brl.mgl > $@
+genbdf/%-LC_maz_Brl.bdf : genbdf/%-uni.bdf mgl/conslinux-256/maz.mgl mgl/conslinux-256/Brl.mgl
+	$(BDFMANGLE) $< mgl/conslinux-256/maz.mgl mgl/conslinux-256/Brl.mgl > $@
+
+
+# ------------------------------------------------------------------------
+# pcf fonts
+
+genpcf/%.pcf.gz : genbdf/%.bdf
+	$(BDFTOPCF) $< > $(@:.pcf.gz=.pcf)
+	gzip -n -9 -f $(@:.pcf.gz=.pcf)
+
+
+# ------------------------------------------------------------------------
+# otb fonts
+
+  # We change the names of the source bdf fonts for the otb fonts so
+  # that pcf fonts and otb fonts appear in the output of fc-list with
+  # different names. As some programs display some formats incorrectly,
+  # the user should be able to choose.
+
+genotbbdf/%.bdf : genbdf/%.bdf
+	$(PERL) -pe 's/Ttyp0/Ttyp0 OTB/g;' $< > $@
+
+genotb/UW-Ttyp0-%-Regular.otb : genotbbdf/t0-%-uni.bdf
+	$(FONTTOSFNT) -o $@ $<
+genotb/UW-Ttyp0-%-Bold.otb : genotbbdf/t0-%b-uni.bdf
+	$(FONTTOSFNT) -o $@ $<
+genotb/UW-Ttyp0-%-Italic.otb : genotbbdf/t0-%i-uni.bdf
+	$(FONTTOSFNT) -o $@ $<
+
+
+# ------------------------------------------------------------------------
+# console fonts for Linux
+
+  # We use t0-16-%.bdf to generate %.equ and %.rep, but in fact
+  # any bdf file for the given encoding yields the same result;
+  # size and font style don't matter. 
+
+genconslinux/%.equ : genbdf/t0-16-LC_%.bdf
+	$(BDFMANGLE) $< mgl/reorder.mgl mgl/unicode.mgl | sed -e  '/ DDefaultChar/,/ENDCHAR/d' | $(BDFTOEQUIV) - subst/unicode.subst > $@
+
+genconslinux/%.rep : genbdf/t0-16-LC_%.bdf
+	$(BDFMANGLE) $< mgl/reorder.mgl mgl/unicode.mgl | sed -e  '/ DDefaultChar/,/ENDCHAR/d' | $(BDFTOREP) - > $@
+
+define CONSLINUX_template =
+genconslinux/Ttyp0-$(s)-$(e).psf.gz : genbdf/t0-$(s)-LC_$(e).bdf genconslinux/$(e).equ genconslinux/$(e).rep
+	$$(BDFMANGLE) genbdf/t0-$(s)-LC_$(e).bdf mgl/reorder.mgl mgl/unicode.mgl | $$(BDF2PSF) --fb - genconslinux/$(e).equ genconslinux/$(e).rep `expr \( \( \`wc -l < genconslinux/$(e).rep\` - 1 \) / 256 + 1 \) \* 256` genconslinux/Ttyp0-$(s)-$(e).psf ; gzip -n -9 -f genconslinux/Ttyp0-$(s)-$(e).psf
+endef
+
+$(foreach e, $(CODESETS_CONS_LINUX), $(foreach s, $(SIZES_CONS_LINUX), $(eval $(call CONSLINUX_template))))
+
+
+# ------------------------------------------------------------------------
+# console fonts for FreeBSD (vt)
+
+genconsfreebsdvt/ttyp0-11.fnt : genbdf/t0-11-uni.bdf genbdf/t0-11b-uni.bdf
+	$(VTFONTCVT) -w 6 -h 11 genbdf/t0-11-uni.bdf genbdf/t0-11b-uni.bdf genconsfreebsdvt/ttyp0-11.fnt
+genconsfreebsdvt/ttyp0-12.fnt : genbdf/t0-12-uni.bdf genbdf/t0-12b-uni.bdf
+	$(VTFONTCVT) -w 6 -h 12 genbdf/t0-12-uni.bdf genbdf/t0-12b-uni.bdf genconsfreebsdvt/ttyp0-12.fnt
+genconsfreebsdvt/ttyp0-13.fnt : genbdf/t0-13-uni.bdf genbdf/t0-13b-uni.bdf
+	$(VTFONTCVT) -w 7 -h 13 genbdf/t0-13-uni.bdf genbdf/t0-13b-uni.bdf genconsfreebsdvt/ttyp0-13.fnt
+genconsfreebsdvt/ttyp0-14.fnt : genbdf/t0-14-uni.bdf genbdf/t0-14b-uni.bdf
+	$(VTFONTCVT) -w 7 -h 14 genbdf/t0-14-uni.bdf genbdf/t0-14b-uni.bdf genconsfreebsdvt/ttyp0-14.fnt
+genconsfreebsdvt/ttyp0-15.fnt : genbdf/t0-15-uni.bdf genbdf/t0-15b-uni.bdf
+	$(VTFONTCVT) -w 8 -h 15 genbdf/t0-15-uni.bdf genbdf/t0-15b-uni.bdf genconsfreebsdvt/ttyp0-15.fnt
+genconsfreebsdvt/ttyp0-16.fnt : genbdf/t0-16-uni.bdf genbdf/t0-16b-uni.bdf
+	$(VTFONTCVT) -w 8 -h 16 genbdf/t0-16-uni.bdf genbdf/t0-16b-uni.bdf genconsfreebsdvt/ttyp0-16.fnt
+genconsfreebsdvt/ttyp0-17.fnt : genbdf/t0-17-uni.bdf genbdf/t0-17b-uni.bdf
+	$(VTFONTCVT) -w 9 -h 17 genbdf/t0-17-uni.bdf genbdf/t0-17b-uni.bdf genconsfreebsdvt/ttyp0-17.fnt
+genconsfreebsdvt/ttyp0-18.fnt : genbdf/t0-18-uni.bdf genbdf/t0-18b-uni.bdf
+	$(VTFONTCVT) -w 9 -h 18 genbdf/t0-18-uni.bdf genbdf/t0-18b-uni.bdf genconsfreebsdvt/ttyp0-18.fnt
+genconsfreebsdvt/ttyp0-22.fnt : genbdf/t0-22-uni.bdf genbdf/t0-22b-uni.bdf
+	$(VTFONTCVT) -w 11 -h 22 genbdf/t0-22-uni.bdf genbdf/t0-22b-uni.bdf genconsfreebsdvt/ttyp0-22.fnt
+genconsfreebsdvt/ttyp0-30.fnt : genbdf/t0-30-uni.bdf genbdf/t0-30b-uni.bdf
+	$(VTFONTCVT) -w 14 -h 30 genbdf/t0-30-uni.bdf genbdf/t0-30b-uni.bdf genconsfreebsdvt/ttyp0-30.fnt
+genconsfreebsdvt/ttyp0-40.fnt : genbdf/t0-40-uni.bdf genbdf/t0-40b-uni.bdf
+	$(VTFONTCVT) -w 18 -h 40 genbdf/t0-40-uni.bdf genbdf/t0-40b-uni.bdf genconsfreebsdvt/ttyp0-40.fnt
+genconsfreebsdvt/ttyp0-60.fnt : genbdf/t0-60-uni.bdf genbdf/t0-60b-uni.bdf
+	$(VTFONTCVT) -w 28 -h 60 genbdf/t0-60-uni.bdf genbdf/t0-60b-uni.bdf genconsfreebsdvt/ttyp0-60.fnt
+genconsfreebsdvt/ttyp0-80.fnt : genbdf/t0-80-uni.bdf genbdf/t0-80b-uni.bdf
+	$(VTFONTCVT) -w 36 -h 80 genbdf/t0-80-uni.bdf genbdf/t0-80b-uni.bdf genconsfreebsdvt/ttyp0-80.fnt
+
+
+# ------------------------------------------------------------------------
+# console fonts for FreeBSD (syscons)
+
+genconsfreebsdsc/ttyp0-r-%-8x14.fnt : genbdf/t0-14-%.bdf
+	$(BDFTOSYSCONS) $< > $@
+genconsfreebsdsc/ttyp0-r-%-8x16.fnt : genbdf/t0-16-%.bdf
+	$(BDFTOSYSCONS) $< > $@
+genconsfreebsdsc/ttyp0-b-%-8x14.fnt : genbdf/t0-14b-%.bdf
+	$(BDFTOSYSCONS) $< > $@
+genconsfreebsdsc/ttyp0-b-%-8x16.fnt : genbdf/t0-16b-%.bdf
+	$(BDFTOSYSCONS) $< > $@
+genconsfreebsdsc/ttyp0-i-%-8x16.fnt : genbdf/t0-16i-%.bdf
+	$(BDFTOSYSCONS) $< > $@
+
+
+# ------------------------------------------------------------------------
+# console fonts for NetBSD
+
+genconsnetbsd/ttyp0-%.h : genbdf/t0-%.bdf
+	$(BDFTOBSDH) -netbsd $< > $@
+
+
+# ------------------------------------------------------------------------
+# console fonts for OpenBSD
+
+genconsopenbsd/ttyp0-%.h : genbdf/t0-%.bdf
+	$(BDFTOBSDH) -openbsd $< > $@ 
+
+
+# ------------------------------------------------------------------------
+# installation
+
+  # Linux psf console fonts are generated with names of the form
+  # Ttyp0-HEIGHT(|b|i)-CODESET.psf.gz. During installation, they are
+  # renamed:
+  #
+  # - If the variable CONSLINUXNAMING equals "standard", the new name
+  #   has the form CODESET-Ttyp0(Regular|Bold|Italic)HEIGHTxWIDTH.psf.gz.
+  #
+  # - If CONSLINUXNAMING equals "psfu", the new name has the same form as
+  #   for CONSLINUXNAMING = "standard", except that the suffix .psf.gz
+  #   is replaced by .psfu.gz.
+  #
+  # - If CONSLINUXNAMING equals "console-setup", the new name has the form
+  #   CODESET-Ttyp0(Regular|Bold|Italic)HEIGHT.psf.gz, if WIDTH equals 8,
+  #   and otherwise CODESET-Ttyp0(Regular|Bold|Italic)HEIGHTxWIDTH.psf.gz.
+  #   Moreover, those Ttyp0 codeset names that correspond to some
+  #   console-setup codeset name are replaced by the latter.
+
+ifeq ($(strip $(GEN_CONS_LINUX)),1)
+  naming = $(CONSLINUXNAMING)
+  keepbasename = s,.*/,,;
+ifeq ($(strip $(naming)),standard)
+  optrenamefontsize = s/-11/-11x6/;  s/-12/-12x6/; s/-13/-13x7/;  s/-14/-14x7/; s/-15/-15x8/; s/-16/-16x8/; s/-17/-17x9/;  s/-18/-18x9/; s/-22/-22x11/; s/-30/-30x14/; s/-40/-40x18/; s/-60/-60x28/; s/-80/-80x36/;
+  shuffleweight = s/Ttyp0-/Ttyp0Regular-/; s/Ttyp0Regular-\(.*\)b-/Ttyp0Bold-\1-/; s/Ttyp0Regular-\(.*\)i-/Ttyp0Italic-\1-/;
+  shufflecodeset = s/Ttyp0\(.*\)-\(.*\)-\(.*\)\.psf/\3-Ttyp0\1\2.psf/;
+  renamecodeset =
+else
+ifeq ($(strip $(naming)),psfu)
+  optrenamefontsize = s/-11/-11x6/;  s/-12/-12x6/; s/-13/-13x7/;  s/-14/-14x7/; s/-15/-15x8/; s/-16/-16x8/; s/-17/-17x9/;  s/-18/-18x9/; s/-22/-22x11/; s/-30/-30x14/; s/-40/-40x18/; s/-60/-60x28/; s/-80/-80x36/;
+  shuffleweight = s/Ttyp0-/Ttyp0Regular-/; s/Ttyp0Regular-\(.*\)b-/Ttyp0Bold-\1-/; s/Ttyp0Regular-\(.*\)i-/Ttyp0Italic-\1-/;
+  shufflecodeset = s/Ttyp0\(.*\)-\(.*\)-\(.*\)\.psf/\3-Ttyp0\1\2.psfu/;
+  renamecodeset =
+else
+  optrenamefontsize = s/-11/-11x6/;  s/-12/-12x6/; s/-13/-13x7/;  s/-14/-14x7/; s/-17/-17x9/;  s/-18/-18x9/; s/-22/-22x11/; s/-30/-30x14/; s/-40/-40x18/; s/-60/-60x28/; s/-80/-80x36/;
+  shuffleweight = s/Ttyp0-/Ttyp0Regular-/; s/Ttyp0Regular-\(.*\)b-/Ttyp0Bold-\1-/; s/Ttyp0Regular-\(.*\)i-/Ttyp0Italic-\1-/;
+  shufflecodeset = s/Ttyp0\(.*\)-\(.*\)-\(.*\)\.psf/\3-Ttyp0\1\2.psf/;
+  renamecodeset = s/-Arm\([._]\)/-Armenian\1/; s/-EEA\([._]\)/-CyrAsia\1/; s/-Koi\([._]\)/-CyrKoi\1/; s/-EEC\([._]\)/-CyrSlav\1/; s/-Geo\([._]\)/-Georgian\1/; s/-GkW\([._]\)/-Greek\1/; s/-HbW\([._]\)/-Hebrew\1/; s/-WET\([._]\)/-Lat15\1/; s/-WCE\([._]\)/-Lat2\1/; s/-SEu\([._]\)/-Lat38\1/; s/-Bal\([._]\)/-Lat7\1/; s/-Tha\([._]\)/-Thai\1/; s/-Hebr_L\([._]\)/-Uni1\1/; s/-CEur_L\([._]\)/-Uni2\1/; s/-EECA_L\([._]\)/-Uni3\1/; s/-Viet_L\([._]\)/-Vietnamese\1/;
+endif
+endif
+endif
+
+install : $(pcf) $(otb) $(conslinux) $(consfreebsdvt) $(consfreebsdsc) $(consnetbsd) $(consopenbsd)
+ifeq ($(strip $(GEN_PCF)),1)
+ifneq ($(strip $(pcf)),)
+	install -m0755 -d $(DESTDIR)$(PCFDIR)
+	install -m0644 -p $(pcf) $(DESTDIR)$(PCFDIR)
+	mkfontscale $(DESTDIR)$(PCFDIR)
+	mkfontdir $(DESTDIR)$(PCFDIR)
+endif
+endif
+ifeq ($(strip $(GEN_OTB)),1)
+ifneq ($(strip $(otb)),)
+	install -m0755 -d $(DESTDIR)$(OTBDIR)
+	install -m0644 -p $(otb) $(DESTDIR)$(OTBDIR)
+	mkfontscale $(DESTDIR)$(OTBDIR)
+	mkfontdir $(DESTDIR)$(OTBDIR)
+endif
+endif
+ifeq ($(strip $(GEN_CONS_LINUX)),1)
+ifneq ($(strip $(conslinux)),)
+	install -m0755 -d $(DESTDIR)$(CONSLINUXDIR)
+	for oldname in $(conslinux) ; do     \
+	  newname=`echo $$oldname | sed -e ' \
+	    $(keepbasename)                  \
+	    $(optrenamefontsize)             \
+	    $(shuffleweight)                 \
+	    $(renamecodeset)                 \
+	    $(shufflecodeset)'` ;            \
+	  install -m0644 -p $$oldname $(DESTDIR)$(CONSLINUXDIR)/$$newname ; \
+	done
+endif
+endif
+ifeq ($(strip $(GEN_CONS_FREEBSD_VT)),1)
+ifneq ($(strip $(consfreebsdvt)),)
+	install -m0755 -d $(DESTDIR)$(CONSFBSDVTDIR)
+	install -m0644 -p $(consfreebsdvt) $(DESTDIR)$(CONSFBSDVTDIR)
+endif
+endif
+ifeq ($(strip $(GEN_CONS_FREEBSD_SC)),1)
+ifneq ($(strip $(consfreebsdsc)),)
+	install -m0755 -d $(DESTDIR)$(CONSFBSDSCDIR)
+	install -m0644 -p $(consfreebsdsc) $(DESTDIR)$(CONSFBSDSCDIR)
+endif
+endif
+ifeq ($(strip $(GEN_CONS_NETBSD)),1)
+ifneq ($(strip $(consnetbsd)),)
+	install -m0755 -d $(DESTDIR)$(CONSNBSDDIR)
+	install -m0644 -p $(consnetbsd) $(DESTDIR)$(CONSNBSDDIR)
+endif
+endif
+ifeq ($(strip $(GEN_CONS_OPENBSD)),1)
+ifneq ($(strip $(consopenbsd)),)
+	install -m0755 -d $(DESTDIR)$(CONSNBSDDIR)
+	install -m0644 -p $(consopenbsd) $(DESTDIR)$(CONSOBSDDIR)
+endif
+endif
+
+
+install-util :
+	install -m0755 -d $(DESTDIR)$(BINDIR)
+	install -m0755 -d $(DESTDIR)$(MANDIR)/man1
+	install -m0755 -p bin/bdfmangle $(DESTDIR)$(BINDIR)
+	install -m0644 -p man/man1/bdfmangle.1 $(DESTDIR)$(MANDIR)/man1
+
+
+install-doc :
+	install -m0755 -d $(DESTDIR)$(DOCDIR)
+	install -m0755 -d $(DESTDIR)$(DOCDIR)/img
+	install -m0755 -d $(DESTDIR)$(DOCDIR)/LinuxCodeSets
+	install -m0644 -p CHANGELOG INSTALL LICENSE README doc/Charset doc/CheckRendering.txt doc/*.html $(DESTDIR)$(DOCDIR)
+	install -m0644 -p doc/img/* $(DESTDIR)$(DOCDIR)/img
+	install -m0644 -p doc/LinuxCodeSets/* $(DESTDIR)$(DOCDIR)/LinuxCodeSets
+
+
+clean :
+	-rm genbdf/t0-*.bdf genotbbdf/t0-*.bdf genpcf/t0-*.pcf.gz genotb/UW-Ttyp0-*.otb genconslinux/*.equ genconslinux/*.rep genconslinux/Ttyp0-*.psf.gz genconsfreebsdvt/ttyp0-*.fnt genconsfreebsdsc/ttyp0-*.fnt genconsnetbsd/*.h genconsopenbsd/*.h
+
+
+distclean :
+	-cp -p backup-config/*.dat .
+	-cp -p backup-config/Makefile.in .
+	-rm genbdf/t0-*.bdf genotbbdf/t0-*.bdf genpcf/t0-*.pcf.gz genotb/UW-Ttyp0-*.otb genconslinux/*.equ genconslinux/*.rep genconslinux/Ttyp0-*.psf.gz genconsfreebsdvt/ttyp0-*.fnt genconsfreebsdsc/ttyp0-*.fnt genconsnetbsd/*.h genconsopenbsd/*.h
+	-rm Makefile
+
+
+.PHONY: all bdf pcf otb conslinux consfreebsdvt consfreebsdsc consnetbsd consopenbsd clean distclean install install-util
+
+
+.DELETE_ON_ERROR:
+

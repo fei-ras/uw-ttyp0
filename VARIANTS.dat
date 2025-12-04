@@ -1,0 +1,372 @@
+# The UW ttyp0 fonts offer stylistic glyph variants for many characters.
+# Check doc/Variants.html for sample images.
+# 
+# Edit this file to specify your preferred glyph variants.
+#
+# *********************************************************************
+
+# +--------------------------------------------------------------------
+# | 0027 APOSTROPHE
+# | 0060 GRAVE ACCENT
+# +--------------------------------------------------------------------
+# | The default glyphs for the apostrophe and the grave accent are
+# | slightly slanted and curly. If you prefer a straight vertical line
+# | for the apostrophe and a slanted non-curly line for the grave
+# | accent, delete the "#" in the following two lines:
+#COPYTO PApostropheStraight PApostropheAscii
+#COPYTO AccGraveStraight AccGraveAscii
+
+# +--------------------------------------------------------------------
+# | 0030 DIGIT ZERO
+# +--------------------------------------------------------------------
+# | The default glyph for zero is distinguished from the letter "O"
+# | only by its form (the glyph of the letter is wider and more
+# | rectangular). If you prefer a dotted or slashed zero, delete
+# | the "#" in one of the following two lines:
+#COPYTO Digit0Dotted Digit0
+#COPYTO Digit0Slashed Digit0
+
+# +--------------------------------------------------------------------
+# | 002A ASTERISK
+# +--------------------------------------------------------------------
+# | The default glyph for the asterisk is centered (like a mathematical
+# | operator). If you prefer a raised asterisk (like a footnote mark),
+# | delete the "#" in the following line:
+#COPYTO SupAsterisk SAsterisk
+
+# +--------------------------------------------------------------------
+# | 003C LESS-THAN SIGN
+# | 003E GREATER-THAN SIGN
+# +--------------------------------------------------------------------
+# | The default glyphs are right-angled. If you prefer acute-angled
+# | ones, delete the "#" in the following two lines:
+#COPYTO MLessAlt1 MLess
+#COPYTO MGreaterAlt1 MGreater
+
+# +--------------------------------------------------------------------
+# | 005F LOW LINE
+# | 00AF MACRON
+# +--------------------------------------------------------------------
+# | The default glyphs for the underline and overline characters leave
+# | some space at at least one side, so that a sequence of these
+# | characters yields a gappy line (that means it is easy to count the
+# | number of characters). If you want to use these characters to draw
+# | contiguous lines, delete the "#" in the following two lines:
+#COPYTO OLowlineCnnct OLowline
+#COPYTO AccMacronCnnct AccMacronLong
+
+# +--------------------------------------------------------------------
+# | 007E TILDE
+# +--------------------------------------------------------------------
+# | The default glyph is raised. If you prefer a centered tilde,
+# | delete the "#" in the following line:
+#COPYTO MTilde AccTildeAscii
+
+# +--------------------------------------------------------------------
+# | 00A0 NO-BREAK SPACE
+# +--------------------------------------------------------------------
+# | The default glyph for the no-break space looks like an open
+# | rectangle on the baseline. (This is non-standard, but it reduces
+# | the risk of programming mistakes.) If you prefer a normal space
+# | glyph (i.e., the standard behaviour) or a visible space that
+# | doesn't stick out so much, delete the "#" in one of the following
+# | two lines:
+#COPYTO Space SpaceNoBreak
+#COPYTO DVisibleSpace SpaceNoBreak
+
+# +--------------------------------------------------------------------
+# | 00AD SOFT HYPHEN
+# +--------------------------------------------------------------------
+# | The default glyph for the soft hyphen looks like a short hyphen.
+# | (This is non-standard, but it reduces the risk of programming
+# | mistakes.) If you prefer a soft hyphen that looks like a minus
+# | sign, delete the "#" in the following line:
+#COPYTO PHyphenMinus PHyphenSoft
+
+# +--------------------------------------------------------------------
+# | 0104 LATIN CAPITAL LETTER A WITH OGONEK
+# | 0105 LATIN SMALL LETTER A WITH OGONEK
+# | 0118 LATIN CAPITAL LETTER E WITH OGONEK
+# | 0119 LATIN SMALL LETTER E WITH OGONEK
+# | 012E LATIN CAPITAL LETTER I WITH OGONEK
+# | 012F LATIN SMALL LETTER I WITH OGONEK
+# | 0172 LATIN CAPITAL LETTER U WITH OGONEK
+# | 0173 LATIN SMALL LETTER U WITH OGONEK
+# | 01EA LATIN CAPITAL LETTER O WITH OGONEK
+# | 01EB LATIN SMALL LETTER O WITH OGONEK
+# | 01EC LATIN CAPITAL LETTER O WITH OGONEK AND MACRON
+# | 01ED LATIN SMALL LETTER O WITH OGONEK AND MACRON
+# +--------------------------------------------------------------------
+# | In Polish and Lithuanian, the ogonek (nasal hook) is attached to
+# | the lower right part of the base letter, whereas in North American
+# | languages such as Navajo, the ogonok should be centered below the
+# | base letter. The default glyphs use an ogonek attached to the
+# | right. If you prefer a centered ogonek, delete the "#" in the
+# | following fourteen lines:
+#COPYTO LtCapAOgonekAlt LtCapAOgonek
+#COPYTO LtCapEOgonekAlt LtCapEOgonek
+#COPYTO LtCapIOgonekAlt LtCapIOgonek
+#COPYTO LtCapOOgonekAlt LtCapOOgonek
+#COPYTO LtCapUOgonekAlt LtCapUOgonek
+#COPYTO LtCapOMacronOgonekAlt LtCapOMacronOgonek
+#COPYTO LtSmlAOgonekAlt LtSmlAOgonek
+#COPYTO LtSmlEOgonekAlt LtSmlEOgonek
+#COPYTO LtSmlIOgonekAlt LtSmlIOgonek
+#COPYTO LtSmlOOgonekAlt LtSmlOOgonek
+#COPYTO LtSmlUOgonekAlt LtSmlUOgonek
+#COPYTO LtSmlOMacronOgonekAlt LtSmlOMacronOgonek
+#COPYTO AccOgonekCntrd AccOgonek
+#COPYTO CombOgonekCntrd CombOgonek
+
+# +--------------------------------------------------------------------
+# | 010F LATIN SMALL LETTER D WITH CARON
+# | 013D LATIN CAPITAL LETTER L WITH CARON
+# | 013E LATIN SMALL LETTER L WITH CARON
+# | 0165 LATIN SMALL LETTER T WITH CARON
+# +--------------------------------------------------------------------
+# | In Czech and Slovak typesetting, these letters are usually written
+# | with an apostrophe after the letter rather than with a caron above.
+# | These are the default glyphs. If you prefer an actual caron,
+# | delete the "#" in the following four lines:
+#COPYTO LtCapLCaronAlt LtCapLCaron
+#COPYTO LtSmlDCaronAlt LtSmlDCaron
+#COPYTO LtSmlLCaronAlt LtSmlLCaron
+#COPYTO LtSmlTCaronAlt LtSmlTCaron
+
+# +--------------------------------------------------------------------
+# | 0110 LATIN CAPITAL LETTER D WITH STROKE
+# | 0111 LATIN SMALL LETTER D WITH STROKE
+# | 0180 LATIN SMALL LETTER B WITH STROKE
+# | 01E4 LATIN CAPITAL LETTER G WITH STROKE
+# | 01E5 LATIN SMALL LETTER G WITH STROKE
+# | 0243 LATIN CAPITAL LETTER B WITH STROKE
+# +--------------------------------------------------------------------
+# | These letters can be written either with a short horizontal stroke,
+# | typically through the stem (used in Croatian, Sami, Vietnamese, and
+# | in several minority languages of Vietnam), or with a full-width
+# | stroke through the bowl (used in several languages of South
+# | America, Africa, and South-East Asia). The default glyphs have a
+# | short stroke. If you prefer a full-width stroke, delete the "#"
+# | in the following six lines:
+#COPYTO LtCapBStrokeAlt LtCapBStroke
+#COPYTO LtCapDStrokeAlt LtCapDStroke
+#COPYTO LtCapGStrokeAlt LtCapGStroke
+#COPYTO LtSmlBStrokeAlt LtSmlBStroke
+#COPYTO LtSmlDStrokeAlt LtSmlDStroke
+#COPYTO LtSmlGStrokeAlt LtSmlGStroke
+
+# +--------------------------------------------------------------------
+# | 014A LATIN CAPITAL LETTER ENG
+# +--------------------------------------------------------------------
+# | The letter Eng occurs both in African languages and in Sami, but
+# | the preferred glyphs for the capital letter differ. The default
+# | glyph is an enlarged lower-case n with a hook below the baseline
+# | (i.e., the usual African variant). If you prefer an enlarged
+# | lower-case n with a hook on the baseline, delete the "#" in the
+# | first following line; if you prefer an upper-case N with hook below
+# | the baseline (the Sami variant), delete the "#" in the second
+# | following line:
+#COPYTO LtCapEngNodesc LtCapEng
+#COPYTO LtCapEngSami LtCapEng
+
+# +--------------------------------------------------------------------
+# | 0192 LATIN SMALL LETTER F WITH HOOK
+# +--------------------------------------------------------------------
+# | In the upright fonts, the default glyph is an upright lower-case f
+# | with hook. This makes the fonts usable for African languages in
+# | which an f with hook occurs as a regular letter. If you prefer an
+# | italic f with hook (Florin sign), delete the "#" in the following
+# | line:
+#COPYTO CurrFlorin LtSmlFLhook
+
+# +--------------------------------------------------------------------
+# | 01B7 LATIN CAPITAL LETTER EZH
+# +--------------------------------------------------------------------
+# | The letter Ezh occurs in some African languages and in Sami.
+# | In most languages, the capital letter looks like an enlarged
+# | lower-case ezh, but in some languages, e.g. Aja and Dagbani, it
+# | looks like a reversed Sigma. The default glyph is the enlarged
+# | lower-case ezh. If you prefer the reversed Sigma, delete the "#"
+# | in the following line:
+#COPYTO LtCapEzhAlt LtCapEzh
+
+# +--------------------------------------------------------------------
+# | 0251 LATIN SMALL LETTER ALPHA
+# +--------------------------------------------------------------------
+# | In the International Phonetic Alphabet, the letter "Latin Small
+# | Alpha" has the shape of a script "a". In italic fonts, this shape
+# | is indistinguishable from the regular "a". Some languages, notably
+# | in Cameroon, use both the regular "a" and the "Latin alpha", and
+# | to avoid confusion, the latter should look like a Greek "alpha", at
+# | least in italic fonts. The default glyph looks like a script "a".
+# | If you prefer the Greek alpha shape in the italic fonts, delete
+# | the "#" in the first following line; if you prefer the Greek alpha
+# | shape in all fonts, delete the "#" in the second following line:
+#IFFONT -I- COPYTO GkSmlAlp LtSmlAScr
+#COPYTO GkSmlAlp LtSmlAScr
+
+# +--------------------------------------------------------------------
+# | 0300 COMBINING GRAVE ACCENT
+# | 0301 COMBINING ACUTE ACCENT
+# | 0302 COMBINING CIRCUMFLEX ACCENT
+# | 0303 COMBINING TILDE
+# | 0304 COMBINING MACRON
+# | 0306 COMBINING BREVE
+# | 0307 COMBINING DOT ABOVE
+# | 0308 COMBINING DIAERESIS
+# | 030A COMBINING RING ABOVE
+# | 030B COMBINING DOUBLE ACUTE ACCENT
+# | 030C COMBINING CARON
+# | 030F COMBINING DOUBLE GRAVE ACCENT
+# | 0311 COMBINING INVERTED BREVE
+# | 0313 COMBINING COMMA ABOVE
+# | 0314 COMBINING REVERSED COMMA ABOVE
+# | 0483 COMBINING CYRILLIC TITLO
+# | 0484 COMBINING CYRILLIC PALATALIZATION
+# | 0485 COMBINING CYRILLIC DASIA PNEUMATA
+# | 0486 COMBINING CYRILLIC PSILI PNEUMATA
+# +--------------------------------------------------------------------
+# | The Unicode standard provides combined characters for most accented
+# | letters occurring in European languages. Many letter/accent
+# | combinations that occur in non-European languages, however, can
+# | only be represented as a combination of a base letter, say "LATIN
+# | SMALL LETTER G", and a combining character, say "COMBINING TILDE".
+# | Regrettably, the BDF font format does not provide means for proper
+# | positioning of combining accents, which means that combining
+# | accents are implemented by naive overprinting. In particular, the
+# | height of the accent does not vary depending on the base character.
+# | The default glyphs for the combining accents have the right height
+# | for x-height letters such as "a", "c", or "e", but they collide
+# | with lowercase letters with ascenders such as "b", "d", or "f" and
+# | with uppercase letters. If you prefer higher combining accents
+# | (that produce fewer collisions with uppercase letters, but are
+# | too high for x-height letters), delete the "#" in (some of) the
+# | following 19 lines:
+#COPYTO CombGraveRaised CombGrave
+#COPYTO CombAcuteRaised CombAcute
+#COPYTO CombCircumRaised CombCircum
+#COPYTO CombTildeRaised CombTilde
+#COPYTO CombMacronRaised CombMacron
+#COPYTO CombBreveRaised CombBreve
+#COPYTO CombDotRaised CombDot
+#COPYTO CombDrssRaised CombDrss
+#COPYTO CombRingRaised CombRing
+#COPYTO CombAcute2Raised CombAcute2
+#COPYTO CombCaronRaised CombCaron
+#COPYTO CombGrave2Raised CombGrave2
+#COPYTO CombInvbreveRaised CombInvbreve
+#COPYTO CombGkDasiaRaised CombGkDasia
+#COPYTO CombGkPsiliRaised CombGkPsili
+#COPYTO CombTitloRaised CombTitlo
+#COPYTO CombCyPalatRaised CombCyPalat
+#COPYTO CombGkDasiaRaised CombCyDasia
+#COPYTO CombGkPsiliRaised CombCyPsili
+
+# +--------------------------------------------------------------------
+# | 041B CYRILLIC CAPITAL LETTER EL
+# | 0432 CYRILLIC SMALL LETTER VE
+# | 0433 CYRILLIC SMALL LETTER GHE
+# | 0434 CYRILLIC SMALL LETTER DE
+# | 0436 CYRILLIC SMALL LETTER ZHE
+# | 0437 CYRILLIC SMALL LETTER ZE
+# | 0438 CYRILLIC SMALL LETTER I
+# | 0439 CYRILLIC SMALL LETTER SHORT I
+# | 043A CYRILLIC SMALL LETTER KA
+# | 043B CYRILLIC SMALL LETTER EL
+# | 043F CYRILLIC SMALL LETTER PE
+# | 0442 CYRILLIC SMALL LETTER TE
+# | 0446 CYRILLIC SMALL LETTER TSE
+# | 0448 CYRILLIC SMALL LETTER SHA
+# | 0449 CYRILLIC SMALL LETTER SHCHA
+# | 044E CYRILLIC SMALL LETTER YU
+# | 045D CYRILLIC SMALL LETTER I WITH GRAVE
+# +--------------------------------------------------------------------
+# | The default Cyrillic glyphs are the Eastern Cyrillic ones. If you
+# | prefer the Bulgarian ones (italic-like forms for ghe, de, i, pe,
+# | te, tse, sha, shcha; ascenders/descenders for ve, zhe, ze, ka, yu;
+# | triangular el), delete the "#" in the following 17 lines:
+#COPYTO CyCapElBul CyCapEl
+#COPYTO CySmlVeBul CySmlVe
+#COPYTO CySmlGheBul CySmlGhe
+#COPYTO CySmlDeBul CySmlDe
+#COPYTO CySmlZheBul CySmlZhe
+#COPYTO CySmlZeBul CySmlZe
+#COPYTO CySmlIBul CySmlI
+#COPYTO CySmlIBreveBul CySmlIBreve
+#COPYTO CySmlKaBul CySmlKa
+#COPYTO CySmlElBul CySmlEl
+#COPYTO CySmlPeBul CySmlPe
+#COPYTO CySmlTeBul CySmlTe
+#COPYTO CySmlTseBul CySmlTse
+#COPYTO CySmlShaBul CySmlSha
+#COPYTO CySmlShchaBul CySmlShcha
+#COPYTO CySmlYuBul CySmlYu
+#COPYTO CySmlIGraveBul CySmlIGrave
+
+# +--------------------------------------------------------------------
+# | 0431 CYRILLIC SMALL LETTER BE
+# | 0433 CYRILLIC SMALL LETTER GHE
+# | 0434 CYRILLIC SMALL LETTER DE
+# | 043F CYRILLIC SMALL LETTER PE
+# | 0442 CYRILLIC SMALL LETTER TE
+# | 0453 CYRILLIC SMALL LETTER GJE
+# +--------------------------------------------------------------------
+# | In the italic fonts, the default glyphs are the Eastern Cyrillic
+# | ones. If you prefer the Serbian/Macedonian variants, delete the "#"
+# | in the following six lines:
+#COPYTO CySmlBeSrb CySmlBe
+#IFFONT -I- COPYTO CySmlGheSrb CySmlGhe
+#IFFONT -I- COPYTO CySmlDeSrb CySmlDe
+#IFFONT -I- COPYTO CySmlPeSrb CySmlPe
+#IFFONT -I- COPYTO CySmlTeSrb CySmlTe
+#IFFONT -I- COPYTO CySmlGheAcuteMcd CySmlGheAcute
+
+# +--------------------------------------------------------------------
+# | 0E47 THAI CHARACTER MAITAIKHU
+# +--------------------------------------------------------------------
+# | In properly typeset Thai texts, the positioning of vowel signs
+# | depends on the base letter and the positioning of tone marks
+# | depends on the base letter and on the presence or absence of a
+# | vowel sign. For this purpose, contextual variants of Thai vowel
+# | signs and tone marks are available in the Private Use Area
+# | (Windows XP PUA: U+F700-U+F71A, MacOS PUA: U+F884-U+F89E).
+# | If you use Thai but your editor or terminal emulator does not make
+# | use of the contextual variants (that is, if vowel signs over
+# | Po Pla, Fo Fa, and Fo Fan are not shifted left), delete the "#"
+# | in the following line:
+#COPYTO ThMaitaikhuL ThMaitaikhu
+
+# +--------------------------------------------------------------------
+# | 2D30 TIFINAGH LETTER YA
+# | 2D3B TIFINAGH LETTER YEY
+# | 2D3C TIFINAGH LETTER YAF
+# | 2D4D TIFINAGH LETTER YAL
+# | 2D53 TIFINAGH LETTER YU
+# +--------------------------------------------------------------------
+# | The Tifinagh letters have the modern (Neo-Tifinagh) shapes. If you
+# | prefer more traditional shapes (bullets instead of circles for Ya,
+# | Yey, and Yu, non-connected Yaf and Yal), delete the "#" in the
+# | following five lines:
+#COPYTO TfYaAlt TfYa
+#COPYTO TfYeyAlt TfYey
+#COPYTO TfYafAlt TfYaf
+#COPYTO TfYalAlt TfYal
+#COPYTO TfYuAlt TfYu
+
+# +--------------------------------------------------------------------
+# | 2700 ... 2B04 Dingbats and Long Arrows
+# +--------------------------------------------------------------------
+# | Characters such as LONG RIGHTWARDS ARROW or LOWER RIGHT PENCIL do
+# | not fit into a monospaced low-resolution bitmap font because the
+# | glyphs are either too wide or too complex. If UW ttyp0 is used in
+# | combination with a fallback font that provides the glyphs, these
+# | characters should be undefined in UW ttyp0, so that the terminal
+# | emulator or editor takes them from the fallback font instead. On
+# | the other hand, if UW ttyp0 is not supplemented by any other font,
+# | replacing these characters by a reasonable approximation (say,
+# | "LONG RIGHTWARDS ARROW" by "RIGHTWARDS ARROW") is typically more
+# | useful than omitting them entirely. The default behavior is to
+# | leave these characters undefined. If you prefer to get approximated
+# | glyphs, delete the "#" in the following line:
+#COPYTO Space Flag_UseErsatzGlyphs
+

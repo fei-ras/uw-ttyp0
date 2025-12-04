@@ -1,0 +1,1340 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>The UW ttyp0 Fonts: Frequently Asked Questions</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style>
+body {
+        background: rgb(100%,100%,100%);
+        color: #111111;
+        font: 120% Arial, Verdana, Helvetica, sans-serif;
+        margin: 0em 1em 0em 1em;
+        border: 0px solid rgb(100%,100%,100%);
+        border-width: 0px 0;
+        max-width: 50em;
+}
+
+a:link {
+        color: #3388ff;
+        background-color: transparent;
+        text-decoration: none;
+}
+
+a:visited {
+        color: #3388ff;
+        background-color: transparent;
+        text-decoration: none;
+}
+
+a:hover {
+        color: #ee5522;
+        background-color: transparent;
+        text-decoration: underline;
+}
+
+h1 {
+        font: bold 200% Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.5em 0em 0.4em 0em;
+        border: 0px solid rgb(100%,100%,100%);
+        border-width: 0px 0;
+        line-height: 1.2;
+}
+
+h2 {
+        font: bold 140%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.7em 0em 0em; 
+        line-height: 1.2;
+}
+
+h3 {
+        background: rgb(85%,85%,85%);
+        font: 100%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.4em 0.4em 0.4em;
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        line-height: 1.2;
+}
+
+h4 {
+        font: bold 110%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.0em 0em 0.0em;
+        margin-bottom: 0.5em;
+        line-height: 1.2;
+}
+
+code {
+        font: 110%/1em monospace;
+}
+
+p {
+        line-height: 1.3;
+        padding: 0.1em 0em;
+        margin: 0em 0em 1em;
+}
+
+li {
+        line-height: 1.3;
+        padding: 0.5em 0.0em 0.0em;
+}
+
+img {
+        border-style: none;
+        margin: 0.5em 3em 0.5em 3em;
+}
+
+button {
+        margin-top: 10px;
+        margin-bottom: 0px;
+        margin-right: 5px;
+        margin-left: 5px;
+        background-color: #ffddcc;
+        border: solid;
+        border-width: 1px;
+        color: black;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+}
+
+.rightmargin {
+        padding: 6px 1px;
+        font: 80% Arial, Verdana, Helvetica, sans-serif;
+}
+
+</style>
+<script>
+var c = '0';
+
+// sadly, local cookies are broken on certain browsers, e.g., chromium,
+// and local storage is broken on others, e.g., firefox.
+
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrom') > -1;
+
+function setLocal(cname, cvalue) {
+  document.getElementById("cookienote").innerHTML = "";
+  if (is_chrome) {
+    localStorage.setItem(cname, cvalue);
+  } else {
+    document.cookie = cname + "=" + cvalue + ";" + "max-age=3153600000;SameSite=Lax;" + "path=/;";
+  }
+}
+
+function getLocal(cname) {
+  if (is_chrome) {
+    return localStorage.getItem(cname);
+  } else {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var ck = ca[i];
+      while (ck.charAt(0) == ' ') {
+        ck = ck.substring(1);
+      }
+      if (ck.indexOf(name) == 0) {
+        return ck.substring(name.length, ck.length);
+      }
+    }
+    return "";
+  }
+}
+
+function setbrightmodesamples() {
+  var elements = document.querySelectorAll(".sample");
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].style.filter = "";
+  }
+}
+
+function setbrightmodebuttons() {
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].style.color = "black";
+    buttons[i].style.backgroundColor = "#ffddcc";
+  }
+}
+
+function setbrightmodequestions() {
+  var questions = document.querySelectorAll("h3");
+  for (var i = 0; i < questions.length; i++) {
+    questions[i].style.color = "black";
+    questions[i].style.backgroundColor = "rgb(85%,85%,85%)";
+  }
+}
+
+function setbrightmode() {
+  document.getElementById("all").style.background = "rgb(100%,100%,100%)";
+  document.getElementById("all").style.color = "#111111";
+  setbrightmodesamples();
+  setbrightmodebuttons();
+  setbrightmodequestions();
+}
+
+function setdarkmodesamples() {
+  var elements = document.querySelectorAll(".sample");
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].style.filter = "invert(100%) saturate(230%) brightness(120%) contrast(65%)";
+  }
+}
+
+function setdarkmodebuttons() {
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].style.color = "white";
+    buttons[i].style.backgroundColor = "#aa2211";
+  }
+}
+
+function setdarkmodequestions() {
+  var questions = document.querySelectorAll("h3");
+  for (var i = 0; i < questions.length; i++) {
+    questions[i].style.color = "#f7f7f7";
+    questions[i].style.backgroundColor = "rgb(45%,45%,45%)";
+  }
+}
+
+function setdarkmode() {
+  document.getElementById("all").style.background = "rgb(10%,10%,10%)";
+  document.getElementById("all").style.color = "#eeeeee";
+  setdarkmodesamples();
+  setdarkmodebuttons();
+  setdarkmodequestions();
+}
+
+window.onload = function() {
+  c = getLocal("ttyp0_darkmode");
+  if (c != "0" && c != "1") {
+    c = "";
+    switch(window.location.protocol) {
+      case 'http:':
+      case 'https:':
+        document.getElementById("cookienote").innerHTML = "(sets a cookie)";
+    }
+  }
+  if (c == "1") {
+    setdarkmode();
+  } else {
+    setbrightmode();
+  }
+};
+</script>
+</head>
+
+<body id="all">
+
+<div style='position: fixed; top: 0; right: 0; z-index: -1; text-align: right'><button class='rightmargin' type="button"
+style="width: 15.5em;" onclick="if (c == '1') {
+  setbrightmode();
+  setLocal('ttyp0_darkmode', '0');
+  c = '0';
+} else {
+  setdarkmode();
+  setLocal('ttyp0_darkmode', '1');
+  c = '1';
+}">DARK MODE / BRIGHT MODE<div id="cookienote"></div></button>
+</div>
+
+<h1>The UW ttyp0 Fonts – Frequently Asked Questions</h1>
+
+<h2>Table of Contents</h2>
+<ul style='font: 110%/1em Arial, Verdana, Helvetica, sans-serif;'>
+  <li> <a href="#installation">Installation</a>
+  <li> <a href="#displayproblems">Display Problems</a>
+  <li> <a href="#fontstyles">Font Styles and Sizes</a>
+  <li> <a href="#designissues">Design Issues</a>
+  <li> <a href="#coverage">Glyph and Script Coverage</a>
+  <li> <a href="#characterencodings">Character Encodings and Linux Codesets</a>
+  <li> <a href="#characterinput">Character Input</a>
+  <li> <a href="#powerline">Powerline</a>
+  <li> <a href="#licensing">Licensing</a>
+  <li> <a href="#fontnaming">Font Naming</a>
+  <li> <a href="#willyou">Will you ...?</a>
+</ul>
+
+<h2 id="installation">Installation</h2>
+
+<h3>
+  The source of UW ttyp0 is in bdf format, which is then compiled in two
+  steps into other formats such as pcf or otb.
+  Are precompiled versions of the fonts available?
+</h3>
+<p>
+  Not from me. UW ttyp0 has a large number of configuration options, but
+  that is possible only if the final files are compiled from the source.
+  With precompiled versions, this flexibility would be lost.
+</p>
+
+<!--hr-->
+
+<h3>
+  Should I generate pcf fonts or otb fonts for X11?
+</h3>
+<p>
+  On some systems, pcf is not supported anymore, so that otb is the
+  only choice.
+  On systems that support both font formats, pick one, try it,
+  and if you notice any display problems (wrong spacing, misplaced
+  accents, etc., see below) try the other one. The choice may
+  depend on your terminal program or editor; it seems that some of these
+  programs have quirks that manifest themselves
+  only with one of the font formats, whereas the other one is not affected.
+</p>
+
+<!--hr-->
+
+<h3>
+  Why do you generate individual otb fonts for each size and style,
+  rather than one regular, one bold, and one italic font, where each of
+  them contains the bitmaps for all the available sizes?
+  The otb format is supposed to support that.
+</h3>
+<p>
+  In theory, otb is supposed to support bitmaps with different sizes
+  within one font file;
+  in practice there are significant problems, see for instance
+  <a href="https://bugs.gentoo.org/728308#c5">https://bugs.gentoo.org/728308#c5</a>
+  or <a href="https://gitlab.gnome.org/GNOME/pango/-/issues/477">https://gitlab.gnome.org/GNOME/pango/-/issues/477</a>.
+  Opentype collections (otc) might be better suited for that purpose.
+</p>
+
+<!--hr-->
+
+<h3>
+  Are there ports for $OPERATING_SYSTEM?
+</h3>
+<p>
+  As far as I know, there are packages for Alpine, Arch, Gentoo,
+  NixOS, openSUSE, and SourceMage Linux,
+  and for FreeBSD, NetBSD, and OpenBSD. If you are
+  familiar with packaging and if you'd like to prepare such a port for
+  another system or distribution, drop me a note.
+</p>
+
+<!--hr-->
+
+<h3>
+  What should I use to edit <code>VARIANTS.dat</code> and
+  <code>TARGETS*.dat</code>?
+</h3>
+<p>
+  These files can be edited using any text editor, for example emacs,
+  vim, gedit, kate, nano, or notepad. Do not use a word processor,
+  such as LibreOffice Writer or Microsoft Word.
+</p>
+
+<!--hr-->
+
+<h3>
+  I edited <code>VARIANTS.dat</code> and <code>TARGETS*.dat</code>,
+  but now I get syntax error messages when I run make.
+</h3>
+<p>
+  The directory <code>backup-config</code> contains backup copies for
+  <code>VARIANTS.dat</code> and for all the <code>TARGETS*.dat</code> files.
+  Copy them to the main directory and try again.
+</p>
+
+<!--hr-->
+
+<h3>
+  I get an error message when I try to install the 40px Linux console font.
+</h3>
+<p>
+  The framebuffer console is a part of the Linux kernel,
+  and prior to kernel version 6.9, it
+  accepted only fonts with a maximal size of 32 x 16 pixels.
+  You may have to wait until your Linux distribution
+  switches to version 6.9, where this restriction has been removed.
+</p>
+
+<!--hr-->
+
+<h3>
+  I need the compiled bdf fonts of UW ttyp0, rather than the pcf or otb
+  fonts. How do I get them?
+</h3>
+<p>
+  Edit <code>TARGETS.dat</code> and <code>TARGETS_BDF.dat</code>
+  to get bdf fonts, then type
+  <code>make</code>. The compiled bdf fonts are stored in <code>genbdf</code>.
+</p>
+
+<!--hr-->
+
+<h3>
+  I don't have <code>make</code>. What can I do?
+</h3>
+<p>
+  That means that you are not using anything Unix-like, right? For
+  MS Windows, you might use Cygwin. Alternatively, try this:
+</p>
+<pre>
+    perl bin\bdfmangle bdf\t0-12.bdf VARIANTS.dat mgl\unicode.mgl > genbdf\t0-12-uni.bdf
+    perl bin\bdfmangle bdf\t0-12b.bdf VARIANTS.dat mgl\unicode.mgl > genbdf\t0-12b-uni.bdf
+    perl bin\bdfmangle bdf\t0-14.bdf VARIANTS.dat mgl\unicode.mgl > genbdf\t0-14-uni.bdf
+    perl bin\bdfmangle bdf\t0-14b.bdf VARIANTS.dat mgl\unicode.mgl > genbdf\t0-14b-uni.bdf
+    ...
+    perl bin\bdfmangle bdf\t0-40.bdf VARIANTS.dat mgl\unicode.mgl > genbdf\t0-40-uni.bdf
+    perl bin\bdfmangle bdf\t0-40b.bdf VARIANTS.dat mgl\unicode.mgl > genbdf\t0-40b-uni.bdf
+</pre>
+<p>
+  This should at least give you the Unicode bdf versions of the
+  even-sized fonts. For the odd-sized ones, it's unfortunately more
+  complicated, you need something like
+</p>
+<pre>
+    perl bin\mkshallow bdf\t0-12.bdf > za
+    copy /b za + bdf\t0-11.bdf zb
+    perl bin\bdfmangle zb VARIANTS.dat mgl\unicode.mgl > genbdf\t0-11-uni.bdf
+</pre>
+<p>
+  and analogously for the other sizes and styles. (Disclaimer: This is
+  untested. I don't use MS Windows.)
+</p>
+
+<!--hr-->
+
+<h3>
+  What about other font formats (e.g., fon)?
+</h3>
+<p>
+  There are free tools to convert bdf into other formats (e.g.,
+  fontforge, bdftofon). UW ttyp0 is free software: you may convert it
+  to any font format you like – but you'll have to figure out yourself
+  how to do it. My own experience with these tools is close to zero.
+</p>
+
+<!--hr-->
+
+<h3>
+  I tried to convert the Unicode bdf file to a Windows bitmap font
+  using bdftofon, but I got an error message.
+</h3>
+<p>
+  Unfortunately, the MS Windows bitmap font formats have a hard-coded
+  size limit: All character codes in a .fnt must be in the range
+  from 0 to 255, so it only works for 8-bit code pages. A .fon file
+  is essentially a collection of .fnt files, so it has the same
+  restriction. If you want to use UW ttyp0 with Unicode encoding
+  under MS Windows, you must convert it to a bitmap-only Truetype font.
+  That should be possible in principle, but it seems to require some
+  insider knowledge. (I tried it myself using fontforge, but without
+  success.)
+</p>
+
+<!--hr-->
+
+<h3>
+  I want to convert UW ttyp0 to some other font format. Do I have to
+  go through the installation process first, or can I just use the
+  source bdf files in the bdf directory?
+</h3>
+<p>
+  You must run the installation routine first. It will convert the
+  source bdf files (in the bdf directory) to bdf files that use a
+  standard encoding such as Unicode (in the genbdf directory).
+  Afterwards you can convert the latter to the desired font format.
+  The source bdf files themselves use a proprietary encoding that is
+  neither documented nor guaranteed to be stable. These files are
+  supposed to be used for exactly two things, namely (1) font editing
+  and (2) conversion to a proper bdf font using the installation
+  routine. Do not use them for anything else.
+</p>
+
+<!--hr-->
+
+<h3>
+  Why do you use some weird encoding and glyph names that are not the
+  standard Postscript names.
+</h3>
+<p>
+  Neither the Unicode order of glyphs nor the standard Postscript names
+  are particularly well-suited for font design. As a designer one would
+  like to have something more systematic, for instance all glyphs that
+  share some element should have related names and should come one after
+  another in the font file. UW ttyp0 uses the bdfmangle utility to
+  convert the source bdf files into Unicode (or any other) encoding. If
+  you have an application that really cares about Postscript names (most
+  programs using pcf fonts don't care), you can use fontforge to change
+  the names.
+</p>
+
+<!--hr-->
+
+<h2 id="displayproblems">Display Problems</h2>
+
+<h3>
+  When I try to use UW ttyp0, everything looks like gibberish: there are
+  lots of characters that I don't even recognize. What's going wrong?
+</h3>
+<p>
+  You have tried to use the source bdf files in the distribution
+  directly, rather than following the steps described in <code>INSTALL</code>.
+  That does not work, sorry. The source bdf files use a proprietary encoding
+  and have to be converted into a standard format during the
+  installation process.
+</p>
+
+<!--hr-->
+
+<h3>
+  For some characters, the distance to the next or the previous
+  character is incorrect.
+</h3>
+<p>
+  Depending on the terminal program,
+  this problem may concern only one font format (pcf or otb);
+  if your system supports both pcf and otb, changing the font format
+  may help.
+  If otb fonts are affected, it may also be
+  useful to install the latest version of
+  fonttosfnt and to recompile the otb fonts.
+  (Earlier versions of fonttosfnt had a bug that resulted in spacing
+  problems in the generated otb fonts. I hope that these bugs have
+  been fixed completely by now.)
+  To test whether characters are rendered as intended
+  have a look at <code>doc/CheckRendering.txt</code>.
+</p>
+
+<!--hr-->
+
+<h3>
+  Some combining characters (accents, tone marks, or Thai or Hebrew
+  vowel signs) are not displayed correctly.
+</h3>
+<p>
+  UW ttyp0 is a bdf font and the bdf format does not provide means for
+  proper positioning of combining characters. Consequently, terminal
+  programs like xterm must handle all combinations of letters and
+  diacritical marks for which no precomposed glyphs are available by
+  naive overprinting. The results are obviously not optimal. If you
+  use a language in which combining accents are often put on top of
+  lowercase letters with ascenders or uppercase letters,
+  <code>VARIANTS.dat</code>
+  offers an option to use raised accents (that are less likely to
+  collide with the base letter).
+</p>
+
+<p>
+  Sadly, some terminal programs do not even get the naive overprinting
+  right. For instance, under Debian Linux 11, KDE konsole often
+  does not put the floating accent on the current character, but rather
+  on the following one, or one row higher, or one row lower than the
+  current one. On the other hand, konsole is actually better than xterm
+  in displaying Thai text, since it makes use of the contextual variants
+  in the Private Use Area, whereas xterm ignores the contextual variants.
+  Sometimes the problems concern only one font format (pcf or otb);
+  if your system supports both pcf and otb, changing the font format may help.
+  To test whether characters are rendered as intended
+  have a look at <code>doc/CheckRendering.txt</code>.
+</p>
+
+<!--hr-->
+
+<h3>
+  Some characters, such as Latin small S with diagonal stroke (U+A7CD),
+  superscript capital S (U+A7F1),
+  or subscript small Z (U+209F) are rendered
+  incorrectly or are not rendered at all.
+</h3>
+<p>
+  UW ttyp0 contains a few characters that were added to Unicode
+  rather recently (Latin small S with diagonal stroke was added
+  in Unicode 16.0.0 in September 2024),
+  characters that will be added in the next version
+  (superscript capital S will be added in Unicode 17.0.0 scheduled for
+  September 2025),
+  and even a few characters that are not yet contained in Unicode but that
+  are likely to be added in the future (Latin subscript small Z
+  has been proposed for addition but has not been accepted yet).
+  The current version of your terminal program or editor
+  may not yet support them.
+</p>
+
+<!--hr-->
+
+<h3>
+  In the Linux console fonts, some characters have wrong shapes.
+</h3>
+<p>
+  Fonts for the Linux console cannot contain more than 512 glyphs.
+  In order to cover as many languages as possible with a limited
+  number of glyphs, these fonts represent characters
+  with the same or a very similar appearance by the same glyph.
+  That means, for instance, that the Greek Η (Eta), the Cyrillic
+  Н (En) and the Latin H share the same glyph, but also,
+  that the empty set character ∅ may look like the
+  Danish Ø (O with stroke), or
+  that the Yen character ¥ (Y with double horizontal stroke) may look 
+  like the Kazakh Cyrillic character Ұ (Y with single horizontal stroke)
+  in some fonts.
+  Furthermore, characters that are not supported by some font
+  may be replaced by their “closest relatives”:
+  If a particular console font does not contain
+  a short rightwards double arrow ⇒ or a long rightwards single arrow ⟶,
+  then showing a short rightwards single arrow → instead
+  is certainly not optimal, but it is typically more useful than showing
+  a space, a box, or a question mark.
+</p>
+
+<!--hr-->
+
+<h3>
+  In the 14px versions of the FreeBSD syscons console fonts, the
+  distance between any two characters is too large.
+</h3>
+<p>
+  The FreeBSD syscons console supports only fonts with a width of
+  8 pixels. The 14px versions of UW ttyp0 are originally 7 pixels wide;
+  to be used with syscons, they must be padded to 8 pixels. 
+</p>
+
+<!--hr-->
+
+<h3>
+  My terminal program renders most Latin glyphs of UW ttyp0 correctly,
+  but uses a different font for other characters, in particular from
+  non-Latins scripts. Why?
+</h3>
+<p>
+  If you have installed both the Unicode version of UW ttyp0 and some
+  8-bit character set(s), it may happen that the terminal program picks
+  one of the 8-bit versions instead of the Unicode version and then
+  takes all the remaining glyphs from some fallback font. In this case,
+  it may help to delete all the 8-bit versions of UW ttyp0 from the
+  installation directory and to keep only the Unicode version.
+</p>
+
+<!--hr-->
+
+<h2 id="fontstyles">Font Styles and Sizes</h2>
+
+<h3>
+  What is special about the odd-sized versions of UW ttyp0?
+</h3>
+<p>
+  The odd sizes (6x11, 7x13, 8x15, 9x17) are generated mostly
+  automatically from the corresponding even ones (6x12, 7x14, 8x16,
+  9x18) using the mkshallow script. The source bdf files for these
+  fonts, say bdf/t0-13.bdf, contain only those glyphs for which the
+  automatic conversion from bdf/t0-14.bdf might fail. Note that this
+  height reduction does not work well for certain scripts, in
+  particular Georgian, Armenian, Thai, and pointed Hebrew. Use the
+  even-sized versions instead.
+</p>
+
+<!--hr-->
+
+<h3>
+  Will any more font sizes be added to UW ttyp0?
+</h3>
+<p>
+  That's very unlikely. A 6x11 matrix is already too small for something
+  like Thai, anything below that would be ridiculous. Above 18x40, I'd
+  recommend to use outline fonts. (The larger sizes have the advantage
+  that hinting in an outline font becomes less important; on the other
+  hand designing a bitmap font becomes more and more tedious).
+</p>
+
+<!--hr-->
+
+<h3>
+  What about the missing italics?
+</h3>
+<p>
+  In a bitmap font, italics work only (in as aesthetically acceptable
+  way) if certain relationships between the character height, the
+  character width, the stroke width and the inter-character space are
+  satisfied. For 8x16, 14x30, and 18x40 it works,
+  for 9x18 it works at a pinch,
+  for the other sizes it doesn't. Bold italics are even worse.
+  Sorry.
+</p>
+
+<!--hr-->
+
+<h3>
+  Will you make a scalable version of UW ttyp0?
+</h3>
+<p>
+  No.
+</p>
+
+<!--hr-->
+
+<h3>
+  Can I get a font in which some characters are bold or italic, and
+  the others are not?
+</h3>
+<p>
+  Yes. Here is an example. Let's say you want to replace parentheses
+  and square and curly brackets in the 8x16 font by their bold versions.
+</p>
+<ol><li>
+  First enable the generation of bdf fonts in <code>TARGETS.dat</code> and
+  generate the Unicode bdf files for the regular and the bold 8x16
+  font using <code>make</code>. The files are named <code>genbdf/t0-16-uni.bdf</code> and
+  <code>genbdf/t0-16b-uni.bdf</code>.
+<li>
+  You need a file that contains the bdfmangle commands for those
+  characters that you want to replace. Use a text editor to create
+  a file <code>replace.mgl</code> with the following content:
+<pre>
+    PUT PParenL
+    PUT PParenR
+    PUT PSquareBrackL
+    PUT PSquareBrackR
+    PUT PCurlyBrackL
+    PUT PCurlyBrackR
+</pre>
+  The names of the characters can be found in <code>doc/Charset</code>.
+  Depending on which characters you want to replace, you can also grep the
+  appropriate lines from mgl/unicode.mgl; for instance
+<pre>
+    $ grep 'PUT Gk' mgl/unicode.mgl > replace.mgl
+</pre>
+  yields a replacement file for all Greek letters.
+<li>
+  Use bdfmangle to generate a file that contains only the parentheses
+  and brackets from the bold font:
+<pre>
+    $ perl bin/bdfmangle genbdf/t0-16b-uni.bdf replace.mgl > tmp-16.bdf
+</pre>
+<li>
+  Concatenate genbdf/t0-16-uni.bdf and tmp-16.bdf (the order is
+  important!), filter the result once more through bdfmangle to produce
+  a Unicode bdf file, and replace the old Unicode bdf file for the 8x16
+  font by the new one.
+<pre>
+    $ cat genbdf/t0-16-uni.bdf tmp-16.bdf | perl bin/bdfmangle - mgl/unicode.mgl > new-16.bdf
+    $ mv new-16.bdf genbdf/t0-16-uni.bdf
+</pre>
+<li>
+  If necessary, repeat steps (3) and (4) for other font sizes.
+<li>
+  Run <code>make</code> to generate and install the files in the desired font
+  formats:
+<pre>
+    $ make
+    # make install
+</pre>
+  Note that you can only merge fonts with the same dimensions. Combining
+  characters from, say, the 8x16 and the 9x18 font will not work.
+</ol>
+
+<!--hr-->
+
+<h2 id="designissues">Design Issues</h2>
+
+<h3>
+  Which fonts have influenced the design of UW ttyp0?
+</h3>
+<p>
+  I started to work on the 8x15 size in 1992
+  because I was dissatisfied with the ugly fonts that came with
+  the X Window system.
+  The first version of (the ASCII part of) UW ttyp0 8x15 was essentially
+  a condensed version of misc-fixed 9x15 without the quirks of misc-fixed 9x15.
+  Some characters still show that heritage.
+  The dimensions of the 7x13 size came from the Lucida Sans Typewriter 7x13
+  bitmaps,
+  and the dimensions of most other sizes followed suit.
+  Many of the ASCII characters are very much inspired by Letter Gothic
+  (except for “i” and “l”,
+  which have bottom serifs, following Courier).
+</p>
+
+<!--hr-->
+
+<h3>
+  Some characters in the 11px/12px fonts look odd. Why?
+</h3>
+<p>
+  What looks good or not in a low-resolution bitmap font depends highly
+  on whether the font is read from a “small” distance or
+  from a “large” distance. The angular shapes of the
+  lowercase “g”, “m”, and “n”
+  in UW ttyp0 regular 12px
+  look rather unnatural if the viewing distance is so small that
+  individual pixels are discernible:
+  <br><img class="sample" src="img/gmn-6x12-orig.png" alt="[Letters g, m, n]"><br>
+  When the viewing distance gets
+  large enough, however, the lack of curves is no longer noticeable, so
+  that the letters appear to have the standard shapes. On the other hand,
+  when the shapes are made more curvy (take a font editor and try it
+  yourself!), they look better at a small distance, but as soon as the
+  viewing distance gets larger,
+  “m” and “n”
+  appear to be unbalanced,
+  and the hook of “g” is either too close to the bowl,
+  or the bowl looks too small compared to “b”,
+  “d”, “p”, or “q”.
+  <br><img class="sample" src="img/gmn-6x12-mod.png" alt="[Modified letters g, m, n]"><br>
+  You just can't have both at the same time. UW ttyp0 is
+  designed for a sufficiently large viewing distance.
+</p>
+
+<!--hr-->
+
+<h3>
+  In the 15px/16px/17px/18px italic fonts, the Cyrillic letter “в”
+  looks like a Bulgarian “в” (which has an ascender) even if
+  Russian letter shapes have been selected in <code>VARIANTS.dat</code>.
+  Why? In Russian italic fonts, “в” is usually an x-height letter
+  without ascender.
+</h3>
+<p>
+  If the letter “в/<i>в</i>” in a low resolution italic bitmap font
+  is designed without ascender, it differs
+  from the letter “е/<i>е</i>” only by one or two pixels,
+  and that may be too confusing.
+  The ascender helps to avoid that ambiguity.
+  (In the 30px and 40px italic fonts, the visual difference is large enough,
+  therefore “в” does not have an ascender.)
+</p>
+
+<!--hr-->
+
+<h3>
+  Why is there a curly apostrophe (and a curly grave accent)? It
+  violates the Unicode standard.
+</h3>
+<p>
+  No, it doesn't. Unicode is a character set standard, not a glyph
+  standard. Whatever it says about glyphs is, quite explicitly, not
+  normative. A font that represents the entire Latin alphabet using
+  German blackletter does not violate the Unicode standard. A font that
+  represents all lowercase letters by uppercase glyphs and uses the same
+  glyph for U and V (following ancient tradition: SENATVS POPVLVSQVE
+  ROMANVS) does not violate the Unicode standard. A font in which U+0027
+  and U+0060 are represented by slanted and curly glyphs does not
+  violate the Unicode standard either. It's not a bug; it's a conscious
+  design decision.
+</p><p>
+  In fact, what Unicode really says about apostrophe glyphs is the
+  following (Unicode 6.1.0, Ch. 6, Section “Apostrophes”):
+</p>
+<blockquote>
+   When text is set, U+2019 right single quotation mark is preferred
+   as apostrophe, but only U+0027 is present on keyboards. Word
+   processors commonly offer a facility for automatically converting
+   the U+0027 apostrophe to a contextually selected curly quotation
+   glyph. In these systems, a U+0027 in the data stream is always
+   represented as a straight vertical line and can never represent a
+   curly apostrophe or a right quotation mark.
+</blockquote>
+<p>
+  Note that, for typical applications of UW ttyp0, the assumption above
+  does not hold: No sane person uses a monospaced low-resolution bitmap
+  font like UW ttyp0 for wisiwyg typesetting in a word processor.
+  Anyhow, for somebody who uses proper Unicode quotes (U+2018, U+2019)
+  in a natural language text, the appearance of U+0027 doesn't matter,
+  as long as it can be distinguished from U+2018 and U+2019. (In UW
+  ttyp0, U+0027 and U+0060 are curly and slanted, whereas U+2018 and
+  U+2019 are curly and unslanted.)
+</p><p>  
+  On the other hand, the appearance of U+0027 does matter for people who
+  type or read natural language text and who have to deal with data in
+  some 8-bit character set. And for them, a directed curly glyph for
+  U+0027 looks right in some contexts (if used as an apostrophe or as a
+  closing quotation mark), and wrong in some other contexts (if used as
+  an opening quotation mark), but an anorexic vertical stroke looks
+  wrong all the time.
+</p><p>
+  Some people claim that a neutral, vertical glyph is more appropriate
+  for programming. It seems that that the inventors and developers of
+  Ada 95, C, C++, Common Lisp, Eiffel, GNU Emacs, Java, Perl, Smalltalk,
+  the Bourne shell, and TeX did not share this opinion. At least, none
+  of them used a neutral glyph in their language descriptions (Taft and
+  Duff 1997, Kernighan and Ritchie 1988, Stroustrup 1991/1997, Steele
+  1990, Meyer 1992, Stallman 1997, Arnold and Gosling 1997, Wall et al.
+  1991/1996, Goldberg and Robson 1989, Bourne 1983, Knuth 1986). So,
+  it's at most a matter of taste. If you don't like the default, get the
+  source, edit <code>VARIANTS.dat</code>, and type <code>make</code>.
+</p>
+
+<!--hr-->
+
+<h3>
+  Using UW ttyp0, I occasionally see “open rectangle” characters that I
+  haven't seen before in other fonts. What is it?
+</h3>
+<p>
+  Probably it's a no-break space, U+00A0. In word processing, U+00A0
+  represents a space at a position where no line-breaks are allowed.
+  Usually it is displayed like a regular space. In programming, however,
+  confusing regular spaces and no-break spaces in a string constant or
+  in some data can lead to nasty bugs, so it's good to be able to
+  distinguish between the two characters. If you prefer a normal space
+  glyph or a visible space that doesn't stick out so much, get the
+  source, edit <code>VARIANTS.dat</code>, and type <code>make</code>.
+</p>
+
+<!--hr-->
+
+<h3>
+  Could you raise the asterisk/center the tilde/lower the underscore/
+  slash the zero/reduce the angle of the less and greater signs?
+</h3>
+<p>
+  These glyphs are already present in UW ttyp0. Get the source, edit
+  <code>VARIANTS.dat</code>, and type <code>make</code>.
+</p>
+
+<!--hr-->
+
+<h3>
+  Could you make these variants the default ones?
+</h3>
+<p>
+  Frankly, I don't like to impose my personal taste on other people, but
+  if I can't avoid imposing some personal taste on others, I rather
+  impose my own one.
+</p>
+
+<!--hr-->
+
+<h3>
+  Why are some characters in the italic fonts not italic?
+</h3>
+<p>
+  Using italics is uncommon for Hebrew typesetting, so italics are
+  replaced by semi-bold. Mathematical operators are never italicized in
+  mathematical texts, so these characters are just copied from the
+  upright fonts; the same applies to dingbats and line graphics.
+</p>
+
+<!--hr-->
+
+<h2 id="coverage">Glyph and Script Coverage</h2>
+
+<h3>
+  Why does UW ttyp0 not cover the letter X/the script Y?
+</h3>
+<p>
+  There any many possible reasons:
+  Because X or Y does not fit reasonably well into a low resolution
+  monospace bitmap font.
+  Because the number of people who need X or Y seems to be extremely small.
+  Because designing X or Y is an awful lot of work.
+  Because I am not sufficiently familiar with the typographic traditions
+  of Y (and note that designing a monospace bitmap font
+  for some script does not only require
+  that one is familiar with
+  the usual appearance of the characters of that script,
+  but also that one knows
+  which distortions (that are necessary to squeeze characters into
+  the pixel grid) are acceptable to native speakers).
+</p>
+
+<!--hr-->
+
+<h3>
+  Why does the Linux console character set X cover language Y,
+  but not language Z?
+</h3>
+<p>
+  Again, there is a long list of possible reasons:
+  Because X is supposed to cover a particular geographical region
+  and language Y is commonly spoken in that region,
+  but Z is not.
+  Because many speakers of another language supported by X
+  are immigrants or members of ethnic minorities who
+  use also language Y regularly, but not Z.
+  Because language Y has many (native or non-native) speakers,
+  whereas very few people use language Z.
+  Because almost all the letters that are used for language Y
+  are also used for other languages covered by X,
+  whereas Z uses lots of letters that are used nowhere else.
+</p>
+
+<!--hr-->
+
+<h2 id="characterencodings">Character Encodings and Linux Codesets</h2>
+
+<h3>
+  Why are there so many Linux console codesets? One needs only a tiny
+  fraction of them to cover all the languages that are covered at all.
+</h3>
+<p>
+  It is true that one needs only a small number of 512 glyph codesets
+  to cover all those languages <em>individually</em>
+  (about 15 codesets would probably be sufficient).
+  But the assumption that users need only the characters of just one
+  language does not hold in general.
+  It's not only immigrants and members of ethnic minorities
+  who communicate regularly in two or more languages.
+  Even monolingual people
+  encounter all kinds of accented letters in the names
+  of their colleagues at work, in the names of the players in their favorite
+  soccer team, or in the entries of their music play list.
+  The problem is exacerbated, if
+  they also need math characters, CP437 graphics, or Powerline icons.
+  To cater for those needs,
+  a much larger number of codesets is necessary,
+  even if one restricts oneself to somewhat plausible combinations of
+  languages.
+</p>
+
+<!--hr-->
+
+<h3>
+  In my country, many people use the XYZ encoding. Why is it not
+  available for the Linux console?
+</h3>
+<p>
+  Because I don't want to add more and more encodings that nobody uses
+  anymore, and because I was not aware of the fact that XYZ encoding is
+  still in use.
+  Just drop me a note. It is very easy to add a couple of further
+  256-glyph codesets.
+</p>
+
+<!--hr-->
+
+<h3>
+  I want to select a particular language in the Interactive Codeset Selector
+  for the Linux console,
+  but the tool does not offer me that choice. Why?
+</h3>
+<p>
+  The Interactive Codeset Selector only asks for languages that are
+  supported by some but not all Linux console codesets
+  that are still available.
+  For example, suppose that you have already selected Icelandic.
+  Some of the console codesets that support Icelandic support also Czech,
+  while others don't, therefore the Codeset Selector asks you whether
+  you are interested in support for Czech or not.
+  On the other hand, you are not asked whether you want support
+  for Danish – that would be pointless, since <em>all</em>
+  console codesets
+  that support Icelandic also support Danish.
+  Similarly, you are not asked whether you want support
+  for Tajik – that would be pointless as well, since there are
+  <em>no</em> console codesets that support both Icelandic and Tajik.
+</p>
+
+<!--hr-->
+
+<h3>
+  Should one precompile all these font style/font size/codeset combinations
+  and include them in a Linux distribution?
+</h3>
+<p>
+  No. But one should make it easy to generate them on the fly if
+  users ever need them.
+</p>
+
+<!--hr-->
+
+<h3>
+  I would like to create a private codeset for a particular application.
+  Is that possible?
+</h3>
+<p>
+  Yes. It's actually quite easy.
+  Here is an example. Let's say you want to create a 256-glyph codeset called
+  MyC that looks mostly like the WET codeset,
+  except that the Icelandic characters Eth and Thorn
+  (Ð, ð, Þ, þ) are replaced by the card suit symbols ♠, ♣, ♥, and ♦.
+</p>
+<ol><li>
+  Copy <code>mgl/conslinux-256/WET.mgl</code> to
+  <code>mgl/conslinux-256/MyC.mgl</code>.
+<li>
+  Edit <code>mgl/conslinux-256/MyC.mgl</code> using a text editor.
+  Delete the four commands
+<pre>
+    PUT LtCapEth
+    PUT LtCapThorn
+    PUT LtSmlEth
+    PUT LtSmlThorn
+</pre>
+  and add the four commands
+<pre>
+    PUT DSuitSpadeB
+    PUT DSuitClubB
+    PUT DSuitHeartB
+    PUT DSuitDiamondB
+</pre>
+  anywhere in the file (the order does not matter).
+  The glyph names can be found in <code>doc/Charset</code>.
+  Note that the total number of <code>PUT</code> commands must remain
+  unchanged
+  and keep in mind that several characters may share the same glyph:
+  If you delete the Greek capital Gamma from a codeset,
+  you will simultaneously delete the Cyrillic capital Ghe,
+  and if you delete the Cyrillic small Ka, you will simultaneously delete
+  the Greek small Kappa.
+<li>
+  The file <code>Makefile.in</code> contains a
+  section named “non-unicode bdf fonts (Linux console fonts with
+  shared glyphs, 256 and 512 glyphs)”.
+  In this section you can find a two-line instruction for each
+  existing codeset, for instance
+<pre>
+    genbdf/%-LC_WET.bdf : genbdf/%-uni.bdf mgl/conslinux-256/WET.mgl
+            $(BDFMANGLE) $< mgl/conslinux-256/WET.mgl > $@
+</pre>
+  for the WET codeset.
+  Duplicate this instruction and replace the three occurrences of
+  <code>WET</code> in the second copy by <code>MyC</code>.
+  Note that 
+  the second line of the instruction must be indented with
+  a tab, not with spaces!
+<li>
+  Add <code>MyC</code> to the <code>CODESETS_CONS_LINUX</code>
+  line in <code>TARGETS_CONS_LINUX.dat</code>.
+<li>
+  Recompile the fonts using
+<pre>
+    $ ./configure [options]
+    $ make
+    # make install
+</pre>
+</ol>
+
+<!--hr-->
+
+<h3>
+  I have generated a font for some (not so common) encoding, but some
+  characters are not displayed correctly/not displayed at all. What's
+  going wrong?
+</h3>
+<p>
+  Most likely, there is some discrepancy between what you see and what
+  the operating system assumes. The assumptions of the OS and the
+  application about your character encoding are described by a so-called
+  “locale”. The locale defines, among others, which character codes
+  represent letters, which ones represent other printable characters,
+  and which ones represent non-printable control characters. Changing a
+  font does not automatically change the locale. So, if you use a MS
+  Windows CP1251 font, then the code 0x8A corresponds to the Serbian
+  letter “Љ”, but if your locale still says that you use ISO 8859-1,
+  then the OS and your applications still assume that 0x8A is a
+  non-printable control character. You will have to figure out how to
+  change locales (and for more exotic encodings even how to write
+  locales).
+</p>
+
+<!--hr-->
+
+<h2 id="characterinput">Character Input</h2>
+
+<h3>
+  Are there specific keyboard layouts for the X11 or console fonts of
+  UW ttyp0?
+</h3>
+<p>
+  No. For languages for which there are working keyboard layouts, these
+  layouts should continue to work with UW ttyp0. For languages for which
+  there are no working keyboard layouts so far, you will have to create
+  one yourself. Note that keyboard layouts for alphabetical scripts are
+  typically designed with a particular language and physical keyboard
+  in mind, not with a particular font or code page in mind. In fact, a
+  keyboard layout that allows the user to enter every character in, say,
+  one of the 512-glyph Linux console fonts for UW ttyp0 is probably
+  inconvenient to use for most languages it covers.
+</p>
+
+<!--hr-->
+
+<h2 id="powerline">Powerline</h2>
+
+<h3>
+  Can I use UW ttyp0 with the old (not python-based) version of
+  vim-powerline?
+</h3>
+<p>
+  Yes, but you have to insert the following lines into mgl/unicode.mgl
+  before running <code>make</code>:
+</p>
+<pre>
+    IFUNDEF Flag_ReorderOnly PUTAS DVerCtlBranch DVerCtlBranchOldpl 0x2B60
+    IFUNDEF Flag_ReorderOnly PUTAS CtlLN CtlLNOldpl 0x2B61
+    IFUNDEF Flag_ReorderOnly PUTAS LtCapF LtCapFOldpl 0x2B62
+    IFUNDEF Flag_ReorderOnly PUTAS LtCapT LtCapTOldpl 0x2B63
+    IFUNDEF Flag_ReorderOnly PUTAS DPadlockCl DPadlockClOldpl 0x2B64
+    IFUNDEF Flag_ReorderOnly PUTAS GPlSepArrowRB GPlSepArrowRBOldpl 0x2B80
+    IFUNDEF Flag_ReorderOnly PUTAS GPlSepArrowR GPlSepArrowROldpl 0x2B81
+    IFUNDEF Flag_ReorderOnly PUTAS GPlSepArrowLB GPlSepArrowLBOldpl 0x2B82
+    IFUNDEF Flag_ReorderOnly PUTAS GPlSepArrowL GPlSepArrowLOldpl 0x2B83
+</pre>
+
+<!--hr-->
+
+<h3>
+  Some dingbats used by tmux-powerline are missing.
+</h3>
+<p>
+  Most dingbats do not fit well into a 6x12 bitmap, and many dingbats
+  do not fit well into any monospaced font. So the dingbat repertoire
+  of UW ttyp0 is somewhat limited, and this is unlikely to change.
+  Please have a look at <code>doc/Charset</code> to see what's available and
+  edit the tmux-powerline code to use some alternative glyphs.
+</p>
+
+<!--hr-->
+
+<h2 id="licensing">Licensing</h2>
+
+<h3>
+  Can I embed UW ttyp0 in software that uses another licence
+  or combine it with such a software?
+</h3>
+<p>
+  Yes. As long as the name change requirement in the ttyp0 license is
+  satisfied, the ttyp0 license behaves like a standard BSD license:
+  You may combine UW ttyp0 with other software, free or non-free, you just
+  have to include the ttyp0 license in the documentation.
+</p>
+
+<!--hr-->
+
+<h3>
+  Why don't you use a more standard license?
+</h3>
+<p>
+  UW ttyp0 is not a full Unicode font, and it's not going to become one.
+  So users may want to merge UW ttyp0 with some other font that provides
+  the required glyphs for, say, Japanese, Ethiopic, or Cherokee. I don't
+  want to prevent people from doing that, no matter what the license of
+  the other font is (even if its non-free). That rules out GPL and SIL
+  OFL.
+</p><p>
+  The only item that distinguishes the ttyp0 license from a plain BSD or
+  MIT license is the name change requirement. While I don't mind if
+  people modify UW ttyp0 in any way they like, I do mind if they
+  publish an “artistically modified” version under a name that creates
+  the impression that it's the original thing, or that I am still
+  reponsible for the result. So the names “ttyp0” (without any foundry
+  prefix) and “UW anything” are reserved. Publishing the derived font
+  under the name “FrankSmith ttyp0” or “MyNuWeirdFont” is fine
+  with me, provided that the copyright notice states who is responsible
+  for the modification (not me!), and provided that the use of my work
+  is acknowledged.
+</p>
+ 
+<!--hr-->
+
+<h3>
+  What do you mean by “artistically modified”?
+</h3>
+<p>
+  “Artistically modified” means "modified in such a way that the
+  resulting font is displayed differently from the original ones".
+  If you add new glyphs or edit the existing ones using a font editor,
+  that's an artistic modification. On the other hand, if you edit
+  <code>VARIANTS.dat</code> as indicated,
+  convert UW ttyp0 to another character set
+  (without adding new glyphs), port the installation scripts to another
+  operating system and/or convert the font verbatim from bdf to another
+  font format, these modifications don't change the original bitmaps, so
+  they are <em>not</em> artistic ones.
+</p>
+
+<!--hr-->
+
+<h2 id="fontnaming">Font Naming</h2>
+
+<h3>
+  What does “UW ttyp0” stand for?
+</h3>
+<p>
+  “UW” are my initials. For the “ttyp0” part, we have to go back in
+  history: The UW ttyp0 fonts are primarily used in terminal emulators,
+  such as xterm, rxvt, or konsole. When the Unix operating system was
+  developed in the early 1970s, the standard computer input device was
+  the teletype or teleprinter, a combination of a keyboard and a printer
+  that was originally developed for telegraphy. In the Unix file system,
+  the teletypes connected to the computer appeared for instance as devices
+  <code>/dev/tty1</code>, <code>/dev/tty2</code>, and so on.
+  The device names were kept when teletypes
+  were replaced by CRT terminals, such as the VT100. The terminal
+  emulators that we have today in graphic user interfaces make use of
+  so-called “pseudo terminals” or “pseudo ttys”: devices that look like
+  oldfashioned VT100-like hardware terminals from the application side
+  but are implemented in software. Depending on the OS variant, they
+  are either numbered <code>/dev/ttyp0</code>, <code>/dev/ttyp1</code>, ...,
+  or <code>/dev/pts/0</code>, <code>/dev/pts/1</code>, ..., and so on.
+  So “ttyp0” is (or used to be) the name of
+  the first pseudo terminal in a Unix-like operating system. And of
+  course, it is also a pun on “typo”, as in “typography”.
+</p>
+
+<!--hr-->
+
+<h3>
+  How is “ttyp0” pronounced?
+</h3>
+<p>
+  “tee tee why pee oh” or “typo”. Choose one.
+</p>
+
+<!--hr-->
+
+<h2 id="willyou">Will you ...?</h2>
+
+<h3>
+  Will you fix bugs in UW ttyp0?
+</h3>
+<p>
+  Yes, sure (provided that I consider them as bugs myself). Drop me a
+  note if you detect anything (from glyph design errors to mistakes
+  in the documentation).
+</p>
+
+<!--hr-->
+
+<h3>
+  Will you add more characters to UW ttyp0?
+</h3>
+<p>
+  A few individual characters: perhaps, if I believe that there is a
+  real need, if I know how to design the glyphs, if they fit into a
+  monospaced bitmap font, and if I have spare time. New scripts:
+  probably not.
+</p>
+
+<!--hr-->
+
+<h3>
+  Will you copy the missing characters for $LANGUAGE from
+  $OTHER_FREE_FONT into UW ttyp0?
+</h3>
+<p>
+  No.
+</p>
+
+<!--hr-->
+
+<h3>
+  Will you tell me how to port UW ttyp0 to $OPERATING_SYSTEM, how to
+  install it on $LINUX_DISTRIBUTION, how to convert it to $FONT_FORMAT,
+  how to use it within $APPLICATION, ...?
+</h3>
+<p>
+  I am not responsible for your operating system, Linux distribution,
+  font conversion program, desktop system, editor, or terminal emulator
+  program, and probably I am not even familiar with it. So the answer
+  is: no. (Usually it's helpful to look for “bitmap font” and the name
+  of your OS/distro/application in your favorite search engine.)
+</p>
+
+<!--hr-->
+
+<h3>
+  Will you read my e-mail concerning UW ttyp0?
+</h3>
+<p>
+  Yes, if the subject line includes the string “ttyp0”. E-mail messages
+  from unknowns with non-sensical subjects such as “URGENT REQUEST” or
+  “Question” or “Dear Mr. Waldmann” or “” go straight to my spam folder.
+</p>
+
+<hr><p>
+Uwe Waldmann
+&lt;<a href="mailto:uwe@mpi-inf.mpg.de">uwe@mpi-inf.mpg.de</a>&gt;,
+<!-- !SH{date '+%Y-%m-%d'} -->2025-09-08<!-- /!SH -->.
+</p>
+
+</body>

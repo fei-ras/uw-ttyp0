@@ -1,0 +1,31 @@
+.TH BDFTOSYSCONS "1" "May 2021" "Uwe Waldmann" "User Commands"
+.SH NAME
+bdftosyscons \- convert a bdf font to a font for the FreeBSD syscons system
+.SH SYNOPSIS
+.B bdftosyscons
+\fIBDFFILE\fR
+.SH DESCRIPTION
+\fIBdftosyscons\fR
+converts a bitmap font in bdf format to the format used by
+the old FreeBSD console system (syscons)
+and prints the result to standard output.
+.SH LIMITATIONS
+\fIBdftosyscons\fR
+assumes that the glyphs of the input font have either
+height 8, 14, or 16, and either width 7 or 8.
+If the width of the original font is 7,
+the glyphs are padded to a width of 8;
+this padding relies on design
+decisions and glyph name conventions of UW ttyp0. For fonts
+from other sources, this may not be optimal.
+
+\fIBdftosyscons\fR
+assumes that all bitmaps in the bdf file are padded to the
+full width and height of the font. This holds for all bdf files in
+the ttyp0 distribution, but it does not hold for arbitrary bdf files.
+If the bitmaps are not padded, the conversion will fail.
+.SH COPYRIGHT
+Copyright \(co 2020-2025 Uwe Waldmann.
+.PP
+Bdftosyscons may be freely used, copied, or modified
+under the terms of the MIT license.

@@ -1,0 +1,88 @@
+# The UW ttyp0 fonts can be installed in several formats (X11 fonts,
+# console fonts, etc.). These formats come with different restrictions
+# on the possible font encodings, the number of glyphs per font, and
+# the height and width of the glyphs. Choose here which font formats you
+# need; then edit the TARGETS files for these font formats to choose
+# sizes, styles, and encodings.
+# 
+# 
+# **********************************************************************
+# 
+# X11 FONTS:
+# 
+# 
+# --------- BDF ---------
+#
+# BDF is the traditional source format for bitmap fonts under X11.
+# Probably you do not need to generate BDF fonts, except if you intend
+# to compile them manually into some other format that is not supported
+# here. If you want to generate BDF fonts, set GEN_BDF to 1 and edit the
+# file TARGETS_BDF.dat afterwards, otherwise set it to 0:
+
+GEN_BDF = 0
+
+# --------- PCF ---------
+#
+# PCF is the traditional format for compiled bitmap fonts under X11.
+# It is used by most older X11 applications. Note that programs that
+# rely on Pango as a backend, e.g., GTK applications, do no longer
+# support PCF; for these you need to generate OTB fonts (see below).
+# If you want to generate PCF fonts, set GEN_PCF to 1 and edit the file
+# TARGETS_PCF.dat afterwards, otherwise set it to 0:
+
+GEN_PCF = 1
+
+# --------- OTB ---------
+#
+# OTB (Open Type Bitmap) fonts are a more compact alternative to PCF fonts
+# for X11. They encapsulate bitmap fonts in an sfnt (TrueType or OpenType)
+# wrapper. If you need OTB fonts, set GEN_OTB to 1 and edit the file
+# TARGETS_OTB.dat afterwards, otherwise set it to 0:
+
+GEN_OTB = 1
+
+
+# **********************************************************************
+# 
+# CONSOLE FONTS:
+# 
+# 
+# --------- Linux console ---------
+#
+# If you need console fonts for Linux, set GEN_CONS_LINUX to 1 and edit
+# the file TARGETS_CONS_LINUX.dat afterwards, otherwise set it to 0:
+
+GEN_CONS_LINUX = 0
+
+# --------- FreeBSD (vt) console ---------
+#
+# If you need console fonts for FreeBSD (vt), set GEN_CONS_FREEBSD_VT to 1
+# and edit the file TARGETS_CONS_FREEBSD_VT.dat afterwards, otherwise set
+# it to 0:
+
+GEN_CONS_FREEBSD_VT = 0
+
+# --------- FreeBSD (syscons) console ---------
+#
+# If you need console fonts for the old FreeBSD syscons driver, set
+# GEN_CONS_FREEBSD_SC to 1 and edit the file TARGETS_CONS_FREEBSD_SC.dat
+# afterwards, otherwise set it to 0:
+
+GEN_CONS_FREEBSD_SC = 0
+
+# --------- NetBSD console ---------
+#
+# If you need console fonts for NetBSD, set GEN_CONS_NETBSD to 1 and edit
+# the file TARGETS_CONS_NETBSD.dat afterwards, otherwise set it to 0:
+
+GEN_CONS_NETBSD = 0
+
+# --------- OpenBSD console ---------
+#
+# If you need console fonts for OpenBSD, set GEN_CONS_OPENBSD to 1 and edit
+# the file TARGETS_CONS_OPENBSD.dat afterwards, otherwise set it to 0:
+
+GEN_CONS_OPENBSD = 0
+
+
+# **********************************************************************

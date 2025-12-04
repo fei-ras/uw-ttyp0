@@ -1,0 +1,10 @@
+Thanks to
+
+  Wolfgang Corcoran-Mathe
+  Michele Guerini Rocco
+  Peter Hofmann
+  Raphael Kubo da Costa
+  Janus Troelsen
+  Christopher Zimmermann
+
+for bugfixes, comments, and suggestions that helped to improve UW ttyp0.

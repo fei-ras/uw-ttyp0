@@ -1,0 +1,1069 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>UW ttyp0 Interactive Codeset Selector</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style>
+body {
+        background: rgb(100%,100%,100%);
+        color: #111111;
+        font: 120% Arial, Verdana, Helvetica, sans-serif;
+        margin: 0em 1em 0em 1em;
+        border: 0px solid rgb(100%,100%,100%);
+        border-width: 0px 0;
+        max-width: 50em;
+}
+
+a:link {
+        color: #3388ff;
+        background-color: transparent;
+        text-decoration: none;
+}
+
+a:visited {
+        color: #3388ff;
+        background-color: transparent;
+        text-decoration: none;
+}
+
+a:hover {
+        color: #ee5522;
+        background-color: transparent;
+        text-decoration: underline;
+}
+
+h1 {
+        font: bold 200% Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.5em 0em 0.4em 0em;
+        border: 0px solid rgb(100%,100%,100%);
+        border-width: 0px 0;
+        line-height: 1.2;
+}
+
+h2 {
+        font: bold 180%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.4em 0em 0.1em;
+        line-height: 1.2;
+}
+
+h3 {
+        font: bold 140%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.3em 0em 0.2em; 
+        line-height: 1.2;
+}
+
+h4 {
+        font: bold 120%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.0em 0em 0.0em;
+        margin-bottom: 0.5em;
+        line-height: 1.2;
+}
+
+h5 {
+        font: bold 110%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.0em 0em 0.0em;
+        margin-bottom: 0.5em;
+        line-height: 1.2;
+}
+
+p {
+        line-height: 1.3;
+        padding: 0.1em 0em;
+        margin: 0em 0em 1em;
+}
+
+li {
+        line-height: 1.3;
+        padding: 0.5em 0.0em 0.0em;
+}
+
+img {
+        border-style: none;
+        margin: 5px 0px 5px 0px;
+}
+
+table, th, td {
+        border: 1px solid gray;
+        border-collapse: collapse;
+}
+
+th, td {
+        padding: 0.5em;
+        vertical-align: top;
+        text-align: left;
+}
+
+th {
+        text-align: left;
+}
+
+button {
+        margin-top: 10px;
+        margin-bottom: 0px;
+        margin-right: 5px;
+        margin-left: 5px;
+        background-color: #ffddcc;
+        border: solid;
+        border-width: 1px;
+        color: black;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+}
+
+.rightmargin {
+	padding: 6px 1px;
+	font: 80% Arial, Verdana, Helvetica, sans-serif;
+}
+
+.nav {
+	padding: 4px 8px;
+        font: 100% Arial, Verdana, Helvetica, sans-serif;
+}
+
+
+</style>
+<script>
+var c = '0';
+
+// sadly, local cookies are broken on certain browsers, e.g., chromium,
+// and local storage is broken on others, e.g., firefox.
+
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrom') > -1;
+
+function setLocal(cname, cvalue) {
+  document.getElementById("cookienote").innerHTML = "";
+  if (is_chrome) {
+    localStorage.setItem(cname, cvalue);
+  } else {
+    document.cookie = cname + "=" + cvalue + ";" + "max-age=3153600000;SameSite=Lax;" + "path=/;";
+  }
+}
+
+function getLocal(cname) {
+  if (is_chrome) {
+    return localStorage.getItem(cname);
+  } else {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var ck = ca[i];
+      while (ck.charAt(0) == ' ') {
+        ck = ck.substring(1);
+      }
+      if (ck.indexOf(name) == 0) {
+        return ck.substring(name.length, ck.length);
+      }
+    }
+    return "";
+  }
+}
+
+function setbrightmodesamples() {
+  var elements = document.querySelectorAll(".sample");
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].style.filter = "";
+  }
+}
+
+function setbrightmodebuttons() {
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].style.color = "black";
+    buttons[i].style.backgroundColor = "#ffddcc";
+  }
+}
+
+function setbrightmode() {
+  document.getElementById("all").style.background = "rgb(100%,100%,100%)";
+  document.getElementById("all").style.color = "#111111";
+  setbrightmodesamples();
+  setbrightmodebuttons();
+}
+
+function setdarkmodesamples() {
+  var elements = document.querySelectorAll(".sample");
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].style.filter = "invert(100%) saturate(230%) brightness(120%) contrast(65%)";
+  }
+}
+
+function setdarkmodebuttons() {
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].style.color = "white";
+    buttons[i].style.backgroundColor = "#aa2211";
+  }
+}
+
+function setdarkmode() {
+  document.getElementById("all").style.background = "rgb(10%,10%,10%)";
+  document.getElementById("all").style.color = "#eeeeee";
+  setdarkmodesamples();
+  setdarkmodebuttons();
+}
+
+window.onload = function() {
+  c = getLocal("ttyp0_darkmode");
+  if (c != "0" && c != "1") {
+    c = "";
+    switch(window.location.protocol) {
+      case 'http:':
+      case 'https:':
+        document.getElementById("cookienote").innerHTML = "(sets a cookie)";
+    }
+  }
+  if (c == "1") {
+    setdarkmode();
+  } else {
+    setbrightmode();
+  }
+};
+
+const e = [
+
+// begin data
+{ealphabet:"", eprereq:"l", etext:"Latin alphabet beyond A-Za-z: åɓəęîłñøßť...", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "maz", "maz_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"c", etext:"Cyrillic alphabet: абвгдежзий...", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "HbR", "HbR_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "Koi", "Koi_Brl", "MIK", "MIK_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "OldCyr", "Thai_L", "Viet_L", "WEur_L"]},
+{ealphabet:"", eprereq:"g", etext:"Greek alphabet: αβγδεζηθικ...", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DGk", "DGk_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"h", etext:"Hebrew alphabet: ...אבגדהוזחטי", eset:["862", "862_Brl", "AAEGGH", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P"]},
+{ealphabet:"", eprereq:"a", etext:"Armenian alphabet: աբգդեզէըթժ...", eset:["AAEGGH", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Geor_L"]},
+{ealphabet:"", eprereq:"k", etext:"Georgian alphabet: აბგდევზთიკ...", eset:["AAEGGH", "Armn_L", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"", eprereq:"t", etext:"Thai alphabet: กขฃคฅฆงจฉช...", eset:["Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"", eprereq:"q", etext:"Tifinagh (Berber) alphabet: ⴰⴱⴳⴷⴹⴻⴼⴽⵀⵃ...", eset:["NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"", eprereq:"b", etext:"Braille symbols ⠁⠃⠉⠙⠑⠭⠽⠵⠀⣿...", eset:["437_Brl", "775_Brl", "850_Brl", "852_Brl", "857_Brl", "860_Brl", "861_Brl", "862_Brl", "863_Brl", "865_Brl", "AfP_Brl", "AfS_Brl", "AfU_Brl", "Arm_Brl", "Bal_Brl", "CEu_Brl", "cwi_Brl", "DCE_Brl", "DCW_Brl", "DGk_Brl", "EEA_Brl", "EEC_Brl", "EEW_Brl", "Geo_Brl", "GkC_Brl", "GkW_Brl", "HbR_Brl", "HbW_Brl", "kam_Brl", "Koi_Brl", "maz_Brl", "MIK_Brl", "MSA_Brl", "NWE_Brl", "Sam_Brl", "SAO_Brl", "SEu_Brl", "Tha_Brl", "Vie_Brl", "WCE_Brl", "WET_Brl"]},
+{ealphabet:"", eprereq:"", etext:"Full color set (regular and bright colors, only 256 glyphs)", eset:["437", "775", "850", "852", "857", "860", "861", "862", "863", "865", "AfP", "AfS", "AfU", "Arm", "Bal", "CEu", "cwi", "DCE", "DCW", "DGk", "EEA", "EEC", "EEW", "Geo", "GkC", "GkW", "HbR", "HbW", "kam", "Koi", "maz", "MIK", "MSA", "NWE", "Sam", "SAO", "SEu", "Tha", "Vie", "WCE", "WET"]},
+{ealphabet:"", eprereq:"", etext:"Basic typographic characters: §©®™°«»‹›‘’‚“”„†‡•…‰€¹²³±·×–", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "HbR", "HbR_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Basic mathematical characters: ¹²³¬±·×÷–←↑→↓√∞≈≠≤≥", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Extended mathematical characters: ⁴⁵⁶₇₈₉ℂℕℚℝℤ⇒⇔∀∂∃∇∈∉∧∨∩∪...", eset:["AfrP_M", "AfrU_M", "Armn_M", "BCWa_M", "CEur_M", "EECA_M", "Espr_M", "Geor_M", "Hebr_M", "MSAm_M", "NAfr_M", "NAme_M", "NEur_M", "NWEu_M", "SEAO_M", "Thai_M", "Viet_M", "WEur_M"]},
+{ealphabet:"", eprereq:"", etext:"Mathematical (unaccented) Greek: αβγδεζηθικ...", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DGk", "DGk_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Line graphics (double): ═║╔╗╚╝╠╣╦╩╬", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "DGk", "DGk_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "Koi", "Koi_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Line graphics (mixed single/double): ╒╓╕╖╘╙╛╜╞╟╡╢╤╥╧╨╪╫", eset:["437", "437_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AfrP_C", "AfrU_C", "Armn_C", "BCWa_C", "CEur_C", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DGk", "DGk_Brl", "EECA_C", "Espr_C", "Geor_C", "Hebr_C", "kam", "kam_Brl", "Koi", "Koi_Brl", "maz", "maz_Brl", "MSAm_C", "NAfr_C", "NAme_C", "NEur_C", "NWEu_C", "SEAO_C", "Thai_C", "Viet_C", "WEur_C"]},
+{ealphabet:"", eprereq:"", etext:"CP437 graphics and icons: ☺☻☼♀♂♠♣♥♦♪♫", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AfrP_C", "AfrU_C", "Armn_C", "BCWa_C", "CEur_C", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "DGk", "DGk_Brl", "EECA_C", "Espr_C", "Geor_C", "Hebr_C", "kam", "kam_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSAm_C", "NAfr_C", "NAme_C", "NEur_C", "NWEu_C", "SEAO_C", "Thai_C", "Viet_C", "WEur_C"]},
+{ealphabet:"", eprereq:"", etext:"Powerline graphics and icons: ⏏⏻⏼⏾🔑🔒🔋🔈🞀🞂...", eset:["AfrP_P", "AfrU_P", "Armn_P", "BCWa_P", "CEur_P", "EECA_P", "Espr_P", "Geor_P", "Hebr_P", "MSAm_P", "NAfr_P", "NAme_P", "NEur_P", "NWEu_P", "SEAO_P", "Thai_P", "Viet_P", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"ISO8859-1", eset:["850", "850_Brl", "AfrU_L", "CEur_L", "EECA_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SEAO_L", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"ISO8859-2", eset:["AfrU_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"ISO8859-3", eset:["BCWa_L", "NWEu_L", "SEu", "SEu_Brl"]},
+{ealphabet:"c", eprereq:"", etext:"ISO8859-5", eset:["CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCW", "DCW_Brl", "EEC", "EECA_L", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "NEur_L", "OldCyr", "WEur_L"]},
+{ealphabet:"g", eprereq:"", etext:"ISO8859-7", eset:["AAEGGH", "CEur_L", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "PolyGk", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"h", eprereq:"", etext:"ISO8859-8", eset:["AAEGGH", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P"]},
+{ealphabet:"l", eprereq:"", etext:"ISO8859-9", eset:["857", "857_Brl", "AfrU_L", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAfr_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_L", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"t", eprereq:"", etext:"ISO8859-11", eset:["Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"l", eprereq:"", etext:"ISO8859-13", eset:["775", "775_Brl", "Bal", "Bal_Brl", "BCWa_L", "CEur_L", "Espr_L", "Hebr_L", "MSAm_L", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"ISO8859-14", eset:["NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P"]},
+{ealphabet:"", eprereq:"", etext:"ISO8859-15", eset:["AfrU_L", "CEur_L", "EECA_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SEAO_L", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"ISO8859-16", eset:["AfrU_L", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Viet_L", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Microsoft CP1270", eset:["NEur_L", "Sam", "Sam_Brl", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"VISCII-1.1", eset:["Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"l", eprereq:"", etext:"IBM CP437", eset:["437", "437_Brl", "AfrP_C", "AfrU_C", "Armn_C", "BCWa_C", "CEur_C", "Espr_C", "Hebr_C", "MSAm_C", "NAme_C", "NWEu_C", "SEAO_C", "Thai_C", "Viet_C", "WEur_C"]},
+{ealphabet:"c", eprereq:"", etext:"KOI8 (Rus)", eset:["Armn_C", "CEur_C", "EECA_C", "Espr_C", "Geor_C", "Hebr_C", "Koi", "Koi_Brl", "NEur_C"]},
+{ealphabet:"c", eprereq:"", etext:"KOI8 (Ukr)", eset:["Armn_C", "CEur_C", "EECA_C", "Espr_C", "Geor_C", "Koi", "Koi_Brl", "NEur_C"]},
+{ealphabet:"c", eprereq:"", etext:"PARATYPE PT154", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"c", eprereq:"", etext:"Abkhaz", eset:["Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"l", eprereq:"", etext:"Afrikaans", eset:["850", "850_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Aja-gbe", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L"]},
+{ealphabet:"l", eprereq:"", etext:"Akan", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Albanian", eset:["850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "863", "863_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Altai", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Anaang", eset:["437", "437_Brl", "850", "850_Brl", "857", "857_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Ancient Egyptian (romanized)", eset:["NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Arabic (romanized)", eset:["AAEGGH", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"l", eprereq:"", etext:"Aringa", eset:["AfrU_L"]},
+{ealphabet:"a", eprereq:"", etext:"Armenian", eset:["AAEGGH", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Geor_L"]},
+{ealphabet:"l", eprereq:"", etext:"Asturian", eset:["BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_L", "NWEu_L", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Aymara", eset:["850", "850_Brl", "857", "857_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Azeri (<em>Cyr</em>)", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Azeri (<em>Lat</em>)", eset:["AfrU_L", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_L", "CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_L", "MSAm_L", "NAfr_L", "NEur_L", "NWEu_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Baatonum/Bariba", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Bambara", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Bamun", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "MSAm_L"]},
+{ealphabet:"c", eprereq:"", etext:"Bashkir", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Basque", eset:["437", "437_Brl", "850", "850_Brl", "857", "857_Brl", "860", "860_Brl", "865", "865_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Belarusian", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_L", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "OldCyr", "Viet_L", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Berber (<em>Lat</em>)", eset:["NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"q", eprereq:"", etext:"Berber (<em>Tfn</em>)", eset:["NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"l", eprereq:"", etext:"Bissa", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Breton", eset:["850", "850_Brl", "857", "857_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Bulgarian", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCW", "DCW_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MIK", "MIK_Brl", "NEur_L", "NWEu_L", "OldCyr", "Thai_L", "Viet_L", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Bulu", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Buryat", eset:["CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Catalan", eset:["850", "850_Brl", "857", "857_Brl", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Cebaara", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "MSAm_L", "NAme_L", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Chaplino Yupik", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Chichewa/Nyanja", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl", "CEur_L", "MSAm_L", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Mandarin Chinese (Pinyin romanization)", eset:["AfrP_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"c", eprereq:"", etext:"Chukchi", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"c", eprereq:"", etext:"Chuvash", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Comorian", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Croatian", eset:["852", "852_Brl", "AfrU_L", "Armn_L", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEC", "EECA_L", "EEC_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkC", "GkC_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "SEu", "SEu_Brl", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Czech", eset:["852", "852_Brl", "AfrU_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Dadibi", eset:["BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Dalecarlian", eset:["BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "EECA_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "SEAO_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Dagaare", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Dagbani", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Dan", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P"]},
+{ealphabet:"l", eprereq:"", etext:"Dangme", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Danish", eset:["775", "775_Brl", "850", "850_Brl", "857", "857_Brl", "861", "861_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Dazaga", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Dendi", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Dinka", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "NAfr_L", "NAme_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Dutch", eset:["850", "850_Brl", "857", "857_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Dyula", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Ebira", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Enets", eset:["EECA_L"]},
+{ealphabet:"l", eprereq:"", etext:"Esperanto", eset:["AAEGGH", "AfrP_L", "BCWa_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "NWEu_L", "SEu", "SEu_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Estonian", eset:["775", "775_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Even", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"c", eprereq:"", etext:"Evenki", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Ewe", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L"]},
+{ealphabet:"l", eprereq:"", etext:"Ewondo", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "MSAm_L", "NAme_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Fang", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Farefare", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Faroese", eset:["850", "850_Brl", "861", "861_Brl", "AfrU_L", "BCWa_L", "CEur_L", "EECA_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SEAO_L", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Finnish", eset:["775", "775_Brl", "AAEGGH", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Fon", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P"]},
+{ealphabet:"l", eprereq:"", etext:"French", eset:["850", "850_Brl", "857", "857_Brl", "863", "863_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Friulian", eset:["850", "850_Brl", "857", "857_Brl", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Fulfulde", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Fur", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Fuzhou (Bàng-uâ-cê romanization)", eset:["SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Ga", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Gagauz (<em>Cyr</em>)", eset:["Armn_L", "CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Gagauz (<em>Lat</em>)", eset:["AfrU_L", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAfr_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"k", eprereq:"", etext:"Georgian", eset:["AAEGGH", "Armn_L", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"l", eprereq:"", etext:"German", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "861", "861_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "maz", "maz_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Gourmanché", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"g", eprereq:"", etext:"Greek (monotonic)", eset:["AAEGGH", "Armn_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DGk", "DGk_Brl", "Espr_L", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "OldCyr", "PolyGk", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"g", eprereq:"", etext:"Greek (polytonic)", eset:["PolyGk"]},
+{ealphabet:"l", eprereq:"", etext:"Paraguayan Guaraní", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "SEAO_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"l", eprereq:"", etext:"Haikou Hainanese (Bǽh-oe-tu romanization)", eset:["NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Hakka (Pha̍k-fa-sṳ romanization)", eset:["SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Hausa", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Hawaiian", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"h", eprereq:"", etext:"Hebrew", eset:["862", "862_Brl", "AAEGGH", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P"]},
+{ealphabet:"h", eprereq:"", etext:"Hebrew with nikud (vowel signs)", eset:["Hebr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Herero", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Hokkien (Pe̍h-ōe-jī romanization)", eset:["SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Taiwanese Hokkien (Tâi-lô romanization)", eset:["AfrU_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Hungarian", eset:["852", "852_Brl", "AfrU_L", "Armn_L", "BCWa_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Viet_L", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Ibani/Kalabari/Kirike", eset:["AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Ibibio", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Icelandic", eset:["850", "850_Brl", "861", "861_Brl", "AfrU_L", "CEur_L", "EECA_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SEAO_L", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Igala", eset:["AfrP_L"]},
+{ealphabet:"l", eprereq:"", etext:"Igbo", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Irish", eset:["850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Irish (dotted)", eset:["NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P"]},
+{ealphabet:"l", eprereq:"", etext:"Italian", eset:["850", "850_Brl", "857", "857_Brl", "860", "860_Brl", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Itelmen", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Izon", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "NAfr_L", "SEAO_L", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"l", eprereq:"", etext:"Japanese (Hepburn, Kunrei-shiki)", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Jarai", eset:["Viet_L"]},
+{ealphabet:"l", eprereq:"", etext:"Kabiye", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L"]},
+{ealphabet:"c", eprereq:"", etext:"Kalmyk", eset:["CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Kanembu", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "EECA_L", "Espr_L", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_L", "NWEu_L", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Kanuri", eset:["AfP", "AfP_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Kashubian", eset:["AfrU_L", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Kazakh (<em>Cyr</em>)", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Kazakh (<em>Lat</em> 2018)", eset:["CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Kazakh (<em>Lat</em> 2021/01)", eset:["AfrU_L", "BCWa_L", "CEur_L", "MSAm_L", "NAfr_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "SEAO_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Kazakh (<em>Lat</em> 2021/04)", eset:["AfrU_L", "BCWa_L", "CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_L", "MSAm_L", "NAfr_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Khakas", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"c", eprereq:"", etext:"Khanty", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Khoekhoe (Nama/Damara)", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfS", "AfS_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Kikongo", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "NAfr_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Kikuyu", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"l", eprereq:"", etext:"Kissi", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"c", eprereq:"", etext:"Komi", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "OldCyr", "Thai_L", "Viet_L", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Konkomba", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Koryak", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Koyraboro Senni", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Krio", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Kulango", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P"]},
+{ealphabet:"c", eprereq:"", etext:"Kurdish (<em>Cyr</em>)", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Kurdish (<em>Lat</em>)", eset:["857", "857_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "SEu", "SEu_Brl", "Thai_L", "Viet_L", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Kyrgyz", eset:["CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Ladin", eset:["AfrU_L", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of West, Central, and East Africa (except South Nigeria)", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of South Nigeria", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of Southern Africa", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfS", "AfS_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of North America (except BC and Wa)", eset:["BCWa_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of British Columbia and Washington State", eset:["BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "NAme_L"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of Mesoamerica and South America", eset:["MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P"]},
+{ealphabet:"l", eprereq:"", etext:"Languages of Southeast and East Asia, Australia, and Oceania", eset:["SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Latvian", eset:["775", "775_Brl", "Bal", "Bal_Brl", "BCWa_L", "CEur_L", "Espr_L", "Hebr_L", "MSAm_L", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"k", eprereq:"", etext:"Laz (<em>Geo</em>)", eset:["AAEGGH", "Armn_L", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"l", eprereq:"", etext:"Laz (<em>Lat</em>)", eset:["Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"l", eprereq:"", etext:"Lendu", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Limba/Hulimba", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Viet_L"]},
+{ealphabet:"l", eprereq:"", etext:"Lithuanian", eset:["775", "775_Brl", "Bal", "Bal_Brl", "BCWa_L", "CEur_L", "EECA_L", "Espr_L", "Hebr_L", "MSAm_L", "NAme_L", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Livonian", eset:["NEur_C", "NEur_L", "NEur_M", "NEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Lozi", eset:["437", "437_Brl", "850", "850_Brl", "857", "857_Brl", "860", "860_Brl", "862", "862_Brl", "865", "865_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Luganda", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Lugbara", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"l", eprereq:"", etext:"Maasai", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Maba", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Macedonian", eset:["CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCW", "DCW_Brl", "EEC", "EECA_L", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "NEur_L", "OldCyr", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Malagasy", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Maltese", eset:["BCWa_L", "CEur_L", "NAfr_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "SEu", "SEu_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Mandinka", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Mangbetu", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Maninkakan", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"c", eprereq:"", etext:"Mansi", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Maori", eset:["775", "775_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Hill Mari", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P", "NEur_L"]},
+{ealphabet:"c", eprereq:"", etext:"Meadow Mari", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Masalit", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Mende", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"k", eprereq:"", etext:"Mingrelian", eset:["Armn_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"l", eprereq:"", etext:"Minyanka/Mamara", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Moba", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "NAfr_L", "NAme_L"]},
+{ealphabet:"c", eprereq:"", etext:"Moldovan", eset:["Armn_L", "CEur_L", "DCW", "DCW_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L"]},
+{ealphabet:"c", eprereq:"", etext:"Mongolian", eset:["CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"c", eprereq:"", etext:"Montenegrin (<em>Cyr</em>)", eset:["CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCW", "DCW_Brl", "EEC", "EECA_L", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "NEur_L", "OldCyr", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Montenegrin (<em>Lat</em>)", eset:["852", "852_Brl", "AfrU_L", "BCWa_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEC", "EECA_L", "EEC_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Moore/Mossi", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Nahuatl", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P"]},
+{ealphabet:"c", eprereq:"", etext:"Nenets", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Nganasan", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "NEur_L"]},
+{ealphabet:"c", eprereq:"", etext:"Nivkh", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Norwegian", eset:["850", "850_Brl", "857", "857_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Nuer", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "NAfr_L", "NAme_L", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Old Cyrillic", eset:["OldCyr"]},
+{ealphabet:"l", eprereq:"", etext:"Old English", eset:["NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P"]},
+{ealphabet:"l", eprereq:"", etext:"Old Norse", eset:["NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P"]},
+{ealphabet:"c", eprereq:"", etext:"Orok (Uilta)", eset:["EECA_L"]},
+{ealphabet:"c", eprereq:"", etext:"Ossetian", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "OldCyr", "Thai_L", "Viet_L", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Pedi/Northern Sotho", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Polish", eset:["775", "775_Brl", "852", "852_Brl", "AfrU_L", "Bal", "Bal_Brl", "BCWa_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "maz", "maz_Brl", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Portuguese", eset:["850", "850_Brl", "857", "857_Brl", "860", "860_Brl", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkW", "GkW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Pular", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Quechua", eset:["MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P"]},
+{ealphabet:"l", eprereq:"", etext:"Rade", eset:["Viet_L"]},
+{ealphabet:"l", eprereq:"", etext:"Finnish Romani (Kalo)", eset:["BCWa_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "Sam", "Sam_Brl", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Macedonian Romani", eset:["CEur_L", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Romanian", eset:["AfrU_L", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkC", "GkC_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Thai_L", "Viet_L", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Romansh", eset:["850", "850_Brl", "857", "857_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Russian", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "HbR", "HbR_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "Koi", "Koi_Brl", "MIK", "MIK_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "OldCyr", "Thai_L", "Viet_L", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Inari Sami", eset:["852", "852_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_L", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_L", "SEu", "SEu_Brl", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Kildin Sami", eset:["NEur_C", "NEur_L", "NEur_M", "NEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Lule Sami", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Northern Sami", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "CEur_L", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Skolt Sami", eset:["NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "Sam", "Sam_Brl", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Southern Sami", eset:["850", "850_Brl", "857", "857_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Ume Sami", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "CEur_L", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Samoan", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Sanskrit (IAST)", eset:["Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"c", eprereq:"", etext:"Selkup", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P", "NEur_L"]},
+{ealphabet:"c", eprereq:"", etext:"Serbian", eset:["CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCW", "DCW_Brl", "EEC", "EECA_L", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "NEur_L", "OldCyr", "WEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Serer", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Slovak", eset:["852", "852_Brl", "AfrU_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Slovene", eset:["775", "775_Brl", "852", "852_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "GkC", "GkC_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_L", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Soninke", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Lower Sorbian", eset:["852", "852_Brl", "AfrU_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Upper Sorbian", eset:["852", "852_Brl", "AfrU_L", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Spanish", eset:["850", "850_Brl", "857", "857_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Supyire", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Susu", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"k", eprereq:"", etext:"Svan", eset:["Armn_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"l", eprereq:"", etext:"Swedish", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "857", "857_Brl", "861", "861_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Tahitian", eset:["775", "775_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Tajik", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Koi", "Koi_Brl"]},
+{ealphabet:"c", eprereq:"", etext:"Tatar", eset:["CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"t", eprereq:"", etext:"Thai", eset:["Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"l", eprereq:"", etext:"Tiv", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "NAfr_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"l", eprereq:"", etext:"Tonga/Zambezi", eset:["850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Tongan", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "Espr_L", "Hebr_L", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Tswa", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Tswana", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Tumbuka", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl", "CEur_L", "MSAm_L", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Turkish", eset:["857", "857_Brl", "AfrU_L", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NAfr_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "SEu", "SEu_Brl", "Thai_L", "Viet_L", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"c", eprereq:"", etext:"Turkmen (<em>Cyr</em>)", eset:["CEur_L", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Turkmen (<em>Lat</em>)", eset:["852", "852_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_L", "NEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEAO_L", "Viet_L", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Twi", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAfr_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Udege", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P", "NEur_L"]},
+{ealphabet:"c", eprereq:"", etext:"Udmurt", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"c", eprereq:"", etext:"Ukrainian", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "HbR", "HbR_Brl", "Hebr_L", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "OldCyr", "Thai_L", "Viet_L", "WEur_L"]},
+{ealphabet:"c", eprereq:"", etext:"Uzbek (<em>Cyr</em>)", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Koi", "Koi_Brl", "NEur_L"]},
+{ealphabet:"l", eprereq:"", etext:"Uzbek (<em>Lat</em> 2019)", eset:["CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Uzbek (<em>Lat</em> 2021)", eset:["BCWa_L", "CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_L", "NAfr_L", "SEAO_L"]},
+{ealphabet:"l", eprereq:"", etext:"Venda", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Veps", eset:["775", "775_Brl", "852", "852_Brl", "AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_L", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Vietnamese", eset:["Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"l", eprereq:"", etext:"Walloon", eset:["AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "Sam", "Sam_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Welsh", eset:["CEur_L", "MSAm_L", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"West Frisian", eset:["850", "850_Brl", "857", "857_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkW", "GkW_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Wolof", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_L", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Worrorra", eset:["SEAO_L"]},
+{ealphabet:"c", eprereq:"", etext:"Yakut", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P"]},
+{ealphabet:"l", eprereq:"", etext:"Yemba", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "MSAm_L", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "SEAO_L"]},
+{ealphabet:"h", eprereq:"", etext:"Yiddish", eset:["AAEGGH", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P"]},
+{ealphabet:"l", eprereq:"", etext:"Yoruba", eset:["AfrP_L", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfU", "AfU_Brl", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Zarma", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P"]},
+{ealphabet:"l", eprereq:"", etext:"Standard phonetic letters for African Languages: ɓɔɗəɛɣƙɲŋʋƴ...", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Rare phonetic letters for African Languages: ɑƈƒɠɤɥɪɉɯɵʃʉʊⱳʒʔǀǁǂ...", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P"]},
+{ealphabet:"l", eprereq:"", etext:"Letters with low circumflex for African Languages", eset:["AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_L", "AfS", "AfS_Brl"]},
+{ealphabet:"l", eprereq:"", etext:"Letters with underdot or underscore for African Languages: ḅẹịọṣụḇḏṯ...", eset:["AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "NAfr_L"]},
+{ealphabet:"l", eprereq:"", etext:"Catalan Ŀ/ŀ", eset:["CEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Danish accented letters áéíóúýǽǿǻ", eset:["NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P"]},
+{ealphabet:"l", eprereq:"", etext:"Dutch Ĳ/ĳ ligature", eset:["AfrP_L", "AfrU_L", "CEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"German capital ẞ", eset:["CEur_L", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"g", eprereq:"", etext:"Greek numeral signs ʹ͵ϚϞϠ", eset:["AAEGGH", "Armn_L", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "Espr_L", "OldCyr", "PolyGk", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"l", eprereq:"", etext:"Irish ⁊", eset:["CEur_L", "NEur_L", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Micro sign μ", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DGk", "DGk_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Pi sign π", eset:["437", "437_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DGk", "DGk_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Ohm sign Ω", eset:["437", "437_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "DGk", "DGk_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Austral sign ₳", eset:["MSAm_L"]},
+{ealphabet:"", eprereq:"", etext:"Baht sign ฿", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"", eprereq:"", etext:"Bitcoin sign ₿", eset:["WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Cedi sign ₵", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"", eprereq:"", etext:"Colon sign ₡", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P"]},
+{ealphabet:"", eprereq:"", etext:"Cruzeiro sign ₢", eset:["MSAm_L"]},
+{ealphabet:"", eprereq:"", etext:"Dong sign ₫", eset:["Espr_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"", eprereq:"", etext:"Drachma sign ₯", eset:["AAEGGH", "CEur_L", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "PolyGk", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Dram sign ֏", eset:["AAEGGH", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"", eprereq:"", etext:"Euro sign €", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "DGk", "DGk_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "Koi", "Koi_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Guarani sign ₲", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P"]},
+{ealphabet:"", eprereq:"", etext:"Hryvnia sign ₴", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "HbR", "HbR_Brl", "Hebr_L", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "OldCyr", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WEur_L"]},
+{ealphabet:"", eprereq:"", etext:"Indian Rupee sign ₹", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"", eprereq:"", etext:"Kip sign ₭", eset:["BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "Espr_L", "NAme_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"", eprereq:"", etext:"Lari sign ₾", eset:["AAEGGH", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P"]},
+{ealphabet:"", eprereq:"", etext:"Manat sign ₼", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_L", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "Hebr_L"]},
+{ealphabet:"", eprereq:"", etext:"Naira sign ₦", eset:["AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"", eprereq:"", etext:"Peseta sign ₧", eset:["437", "437_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "865", "865_Brl", "AfrP_C", "AfrU_C", "Armn_C", "BCWa_C", "CEur_C", "cwi", "cwi_Brl", "EECA_C", "Espr_C", "Geor_C", "Hebr_C", "MSAm_C", "NAfr_C", "NAme_C", "NEur_C", "NWEu_C", "SEAO_C", "Thai_C", "Viet_C", "WEur_C"]},
+{ealphabet:"", eprereq:"", etext:"Peso sign ₱", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"", eprereq:"", etext:"Ruble sign ₽", eset:["AAEGGH", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "HbR", "HbR_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "Koi", "Koi_Brl", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_L", "OldCyr", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_L", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Double-struck Ruble sign: ℙ", eset:["CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_L"]},
+{ealphabet:"", eprereq:"", etext:"Rupees sign ₨", eset:["Espr_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"", eprereq:"", etext:"Indian Rupee sign ₹", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P"]},
+{ealphabet:"", eprereq:"", etext:"Sheqel sign ₪", eset:["862", "862_Brl", "AAEGGH", "Armn_L", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P"]},
+{ealphabet:"", eprereq:"", etext:"Som sign ⃀", eset:["EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L"]},
+{ealphabet:"", eprereq:"", etext:"Tenge sign ₸", eset:["Armn_C", "Armn_L", "Armn_M", "Armn_P", "EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "NEur_L"]},
+{ealphabet:"", eprereq:"", etext:"Tugrik sign ₮", eset:["EEA", "EEA_Brl", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_L"]},
+{ealphabet:"", eprereq:"", etext:"Turkish Lira sign ₺", eset:["857", "857_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "SEu", "SEu_Brl", "Thai_L", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"Won sign ₩", eset:["Espr_C", "Espr_L", "Espr_M", "Espr_P", "Hebr_L", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P"]},
+{ealphabet:"", eprereq:"", etext:"Yen sign ¥", eset:["437", "437_Brl", "850", "850_Brl", "857", "857_Brl", "862", "862_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "maz", "maz_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+{ealphabet:"", eprereq:"", etext:"English/Karakalpak (Lat)/Kazakh (Lat 2017)/Uzbek (Lat 1995)", eset:["437", "437_Brl", "775", "775_Brl", "850", "850_Brl", "852", "852_Brl", "857", "857_Brl", "860", "860_Brl", "861", "861_Brl", "862", "862_Brl", "863", "863_Brl", "865", "865_Brl", "AAEGGH", "AfP", "AfP_Brl", "AfrP_C", "AfrP_L", "AfrP_M", "AfrP_P", "AfrU_C", "AfrU_L", "AfrU_M", "AfrU_P", "AfS", "AfS_Brl", "AfU", "AfU_Brl", "Arm", "Arm_Brl", "Armn_C", "Armn_L", "Armn_M", "Armn_P", "Bal", "Bal_Brl", "BCWa_C", "BCWa_L", "BCWa_M", "BCWa_P", "CEu", "CEu_Brl", "CEur_C", "CEur_L", "CEur_M", "CEur_P", "cwi", "cwi_Brl", "DCE", "DCE_Brl", "DCW", "DCW_Brl", "DGk", "DGk_Brl", "EEA", "EEA_Brl", "EEC", "EECA_C", "EECA_L", "EECA_M", "EECA_P", "EEC_Brl", "EEW", "EEW_Brl", "Espr_C", "Espr_L", "Espr_M", "Espr_P", "Geo", "Geo_Brl", "Geor_C", "Geor_L", "Geor_M", "Geor_P", "GkC", "GkC_Brl", "GkW", "GkW_Brl", "HbR", "HbR_Brl", "HbW", "HbW_Brl", "Hebr_C", "Hebr_L", "Hebr_M", "Hebr_P", "kam", "kam_Brl", "Koi", "Koi_Brl", "maz", "maz_Brl", "MIK", "MIK_Brl", "MSA", "MSA_Brl", "MSAm_C", "MSAm_L", "MSAm_M", "MSAm_P", "NAfr_C", "NAfr_L", "NAfr_M", "NAfr_P", "NAme_C", "NAme_L", "NAme_M", "NAme_P", "NEur_C", "NEur_L", "NEur_M", "NEur_P", "NWE", "NWE_Brl", "NWEu_C", "NWEu_L", "NWEu_M", "NWEu_P", "OldCyr", "PolyGk", "Sam", "Sam_Brl", "SAO", "SAO_Brl", "SEAO_C", "SEAO_L", "SEAO_M", "SEAO_P", "SEu", "SEu_Brl", "Tha", "Tha_Brl", "Thai_C", "Thai_L", "Thai_M", "Thai_P", "Vie", "Vie_Brl", "Viet_C", "Viet_L", "Viet_M", "Viet_P", "WCE", "WCE_Brl", "WET", "WET_Brl", "WEur_C", "WEur_L", "WEur_M", "WEur_P"]},
+// missing in 850: French:  ŒŸœ
+// missing in 857: French:  ŒŸœ
+// missing in 863: French:  ŒŸœÿ
+// missing in CEu: Spanish:  ªº¿¡
+// missing in HbW: Spanish:  ªº
+// missing in NWE: Spanish:  ªº
+// missing in Tha: Spanish:  ªº¿¡
+// missing in EECA_C: Spanish:  ªº
+// missing in EECA_M: Spanish:  ªº
+// missing in EECA_P: Spanish:  ªº
+// missing in Geor_C: Spanish:  ªº¿¡
+// missing in Geor_L: Spanish:  ªº¿¡
+// missing in Geor_M: Spanish:  ªº¿¡
+// missing in Geor_P: Spanish:  ªº¿¡
+// missing in NEur_C: Spanish:  ªº
+// missing in NEur_M: Spanish:  ªº
+// missing in NEur_P: Spanish:  ªº
+// end data
+{ealphabet:"", eprereq:"", etext:"DUMMY", eset:[]}
+];
+
+const nmax = e.length - 1;
+const entriesperpage = 10;
+
+var qinit = [
+"CEur_L",
+"WEur_L",
+"NEur_L",
+"Espr_L",
+"NWEu_L",
+"EECA_L",
+"SEAO_L",
+"Viet_L",
+"Armn_L",
+"Geor_L",
+"Hebr_L",
+"AfrP_L",
+"AfrU_L",
+"NAfr_L",
+"MSAm_L",
+"NAme_L",
+"BCWa_L",
+"Thai_L",
+"CEur_C",
+"WEur_C",
+"NEur_C",
+"Espr_C",
+"NWEu_C",
+"EECA_C",
+"SEAO_C",
+"Viet_C",
+"Armn_C",
+"Geor_C",
+"Hebr_C",
+"AfrP_C",
+"AfrU_C",
+"NAfr_C",
+"MSAm_C",
+"NAme_C",
+"BCWa_C",
+"Thai_C",
+"CEur_P",
+"WEur_P",
+"NEur_P",
+"Espr_P",
+"NWEu_P",
+"EECA_P",
+"SEAO_P",
+"Viet_P",
+"Armn_P",
+"Geor_P",
+"Hebr_P",
+"AfrP_P",
+"AfrU_P",
+"NAfr_P",
+"MSAm_P",
+"NAme_P",
+"BCWa_P",
+"Thai_P",
+"CEur_M",
+"WEur_M",
+"NEur_M",
+"Espr_M",
+"NWEu_M",
+"EECA_M",
+"SEAO_M",
+"Viet_M",
+"Armn_M",
+"Geor_M",
+"Hebr_M",
+"AfrP_M",
+"AfrU_M",
+"NAfr_M",
+"MSAm_M",
+"NAme_M",
+"BCWa_M",
+"Thai_M",
+"AAEGGH",
+"OldCyr",
+"PolyGk",
+"WCE",
+"WET",
+"CEu",
+"Bal",
+"Sam",
+"NWE",
+"SEu",
+"GkC",
+"GkW",
+"EEW",
+"EEC",
+"EEA",
+"SAO",
+"MSA",
+"AfS",
+"AfP",
+"AfU",
+"HbW",
+"HbR",
+"Arm",
+"Geo",
+"Tha",
+"Vie",
+"437",
+"maz",
+"kam",
+"cwi",
+"860",
+"861",
+"862",
+"863",
+"865",
+"DCE",
+"DCW",
+"DGk",
+"Koi",
+"MIK",
+"850",
+"852",
+"775",
+"857",
+"WCE_Brl",
+"WET_Brl",
+"CEu_Brl",
+"Bal_Brl",
+"Sam_Brl",
+"NWE_Brl",
+"SEu_Brl",
+"GkC_Brl",
+"GkW_Brl",
+"EEW_Brl",
+"EEC_Brl",
+"EEA_Brl",
+"SAO_Brl",
+"MSA_Brl",
+"AfS_Brl",
+"AfP_Brl",
+"AfU_Brl",
+"HbW_Brl",
+"HbR_Brl",
+"Arm_Brl",
+"Geo_Brl",
+"Tha_Brl",
+"Vie_Brl",
+"437_Brl",
+"maz_Brl",
+"kam_Brl",
+"cwi_Brl",
+"860_Brl",
+"861_Brl",
+"862_Brl",
+"863_Brl",
+"865_Brl",
+"DCE_Brl",
+"DCW_Brl",
+"DGk_Brl",
+"Koi_Brl",
+"MIK_Brl",
+"850_Brl",
+"852_Brl",
+"775_Brl",
+"857_Brl"
+];
+
+var q;
+var qstack;
+var qalphabets;
+var qphase;
+var qrequests;
+var nlow;
+var nhigh;
+var nrotate;
+
+
+function qinitialize() {
+  var lcsss;
+  try {
+    lcsss = JSON.parse(window.sessionStorage.getItem("LinuxCodeSetSelectorState"));
+    q = lcsss.ssq;
+    qstack = lcsss.ssqstack;
+    qalphabets = lcsss.ssqalphabets;
+    qphase = lcsss.ssqphase;
+    qrequests = lcsss.ssqrequests;
+    nlow = lcsss.ssnlow;
+    nhigh = lcsss.ssnhigh;
+    nrotate = lcsss.ssnrotate;
+    qdisplay(true);
+  } catch(err) {
+    window.sessionStorage.removeItem("LinuxCodeSetSelectorState");
+    qreset();
+  }
+}
+
+function qsavess() {
+  var lcsss = {
+    ssq:q,
+    ssqstack:qstack,
+    ssqalphabets:qalphabets,
+    ssqphase:qphase,
+    ssqrequests:qrequests,
+    ssnlow:nlow,
+    ssnhigh:nhigh,
+    ssnrotate:nrotate
+  };
+  window.sessionStorage.setItem("LinuxCodeSetSelectorState",JSON.stringify(lcsss));
+}
+
+function qreset() {
+  q = qinit;
+  qstack = [];
+  qalphabets = "";
+  qphase = 1;
+  qrequests = [];
+  nlow = 0;
+  nhigh = 0;
+  nrotate = 0;
+  qdisplay(true);
+}
+
+function qupdate(j) {
+  qstack.push({ephase:qphase,ealphabets:qalphabets,eset:q,erequests:qrequests.slice(),elow:nlow,ehigh:nhigh});
+  q = q.filter(x => e[j].eset.includes(x));
+  qalphabets = qalphabets + e[j].eprereq;
+  qrequests.push(e[j].etext);
+  qdisplay(true);
+}
+
+function qnextpage() {
+  nlow = nhigh;
+  if (qphase == 1) {
+    qphase = 2;
+    // If users have selected nothing or only Braille, let them choose
+    // from all possible languages regardless of the alphabet.
+    if (qalphabets == "") {
+      qalphabets = "lcghakqt";
+    } else if (qalphabets == "b") {
+      qalphabets = "blcghakqt";
+    }
+    // If users have not selected Braille, then we assume that they
+    // really don't want Braille and that a codeset that supports
+    // Braille is never the best choice for them.
+    // (This is wrong for other alphabets. E.g., if both Russian and
+    // Chinese are selected, then "Thai_L" is the only codeset left,
+    // even if Thai has not been selected.)
+    if (! qalphabets.includes("b")) {
+      q = q.filter(x => !x.includes("_Brl"));
+    }
+  }
+  qdisplay(true);
+}
+
+function qprevpage() {
+  qdisplay(false);
+}
+
+function qpop() {
+  let obj = qstack.pop();
+  qphase = obj.ephase;
+  qalphabets = obj.ealphabets;
+  qrequests = obj.erequests;
+  q = obj.eset;
+  nlow = obj.elow;
+  nhigh = obj.ehigh;
+  qdisplay(true);
+}
+
+function qdisplay(forward) {
+  let t = "";
+  let tnote = "";
+  let titems = "";
+  if (qphase == 1) {
+    t = t + '<h3>Step 1: Alphabet selection</h3>';
+  } else {
+    t = t + "<h3>Step 2: Language selection</h3>";
+  }    
+  if (q.length == qinit.length) {
+    t = t + "<p>" + q.length + " codesets for the Linux console are available.</p>";
+  } else if (q.length > 6) {
+    t = t + "<p>" + q.length + " codesets are still available: " + q.slice(0,6).map(x => ' <strong><a href="LinuxCodeSets.html#' + x.replace(/_.*/,"") + '">' + x.replace(/_Brl/,"") + '</a>' + x.replace(/.*_Brl/,"!").replace(/[^!]*/,"").replace(/!/,'_<a href="LinuxCodeSets.html#512braille">Brl</a>') + '</strong>').toString() + ", ...</p>";
+  } else {
+    t = t + "<p>" + q.length + " codesets are still available: " + q.map(x => ' <strong><a href="LinuxCodeSets.html#' + x.replace(/_.*/,"") + '">' + x.replace(/_Brl/,"") + '</a>' + x.replace(/.*_Brl/,"!").replace(/[^!]*/,"").replace(/!/,'_<a href="LinuxCodeSets.html#512braille">Brl</a>') + '</strong>').toString() + ".</p>";
+  }
+
+  if (qrequests.some(x => /Africa|Nigeria/.test(x))
+        && q.slice(0,6).filter(x => /Af/.test(x)).length > 1) {
+    tnote = tnote + "<br>None of the African codesets (AfrP_*, AfrU_*, NAfr_*, AfP, AfS, AfU) supports <em>all</em> African languages. Please read the documentation. ";
+  }
+  if (qrequests.includes("Arabic (Romanized)")) {
+    if (q.indexOf("AAEGGH") >= 0 && q.indexOf("AAEGGH") < 6) {
+      tnote = tnote + "<br>Codeset AAEGGH supports only some of the romanizations of Arabic. ";
+    }
+  }
+  if (qrequests.includes("French")) {
+    if (q.indexOf("850") >= 0 && q.indexOf("850") < 6) {
+      tnote = tnote + "<br>Codeset 850 is supposed to support French, but does not contain Œ, œ, and Ÿ. ";
+    }
+    if (q.indexOf("850_Brl") >= 0 && q.indexOf("850_Brl") < 6) {
+      tnote = tnote + "<br>Codeset 850_Brl is supposed to support French, but does not contain Œ, œ, and Ÿ. ";
+    }
+    if (q.indexOf("857") >= 0 && q.indexOf("857") < 6) {
+      tnote = tnote + "<br>Codeset 857 is supposed to support French, but does not contain Œ, œ, and Ÿ. ";
+    }
+    if (q.indexOf("857_Brl") >= 0 && q.indexOf("857_Brl") < 6) {
+      tnote = tnote + "<br>Codeset 857_Brl is supposed to support French, but does not contain Œ, œ, and Ÿ. ";
+    }
+    if (q.indexOf("863") >= 0 && q.indexOf("863") < 6) {
+      tnote = tnote + "<br>Codeset 863 is supposed to support French, but does not contain Œ, œ, Ÿ, and ÿ. ";
+    }
+    if (q.indexOf("863_Brl") >= 0 && q.indexOf("863_Brl") < 6) {
+      tnote = tnote + "<br>Codeset 863_Brl is supposed to support French, but does not contain Œ, œ, Ÿ, and ÿ. ";
+    }
+  }
+  if (qrequests.includes("Spanish")) {
+    if (q.indexOf("CEu") >= 0 && q.indexOf("CEu") < 6) {
+      tnote = tnote + "<br>Codeset CEu supports Spanish except for ¡, ¿, ª, and º. ";
+    }
+    if (q.indexOf("CEu_Brl") >= 0 && q.indexOf("CEu_Brl") < 6) {
+      tnote = tnote + "<br>Codeset CEu_Brl supports Spanish except for ¡, ¿, ª, and º. ";
+    }
+    if (q.indexOf("HbW") >= 0 && q.indexOf("HbW") < 6) {
+      tnote = tnote + "<br>Codeset HbW supports Spanish except for ª and º. ";
+    }
+    if (q.indexOf("HbW_Brl") >= 0 && q.indexOf("HbW_Brl") < 6) {
+      tnote = tnote + "<br>Codeset HbW_Brl supports Spanish except for ª and º. ";
+    }
+    if (q.indexOf("NWE") >= 0 && q.indexOf("NWE") < 6) {
+      tnote = tnote + "<br>Codeset NWE supports Spanish except for ª and º. ";
+    }
+    if (q.indexOf("NWE_Brl") >= 0 && q.indexOf("NWE_Brl") < 6) {
+      tnote = tnote + "<br>Codeset NWE_Brl supports Spanish except for ª and º. ";
+    }
+    if (q.indexOf("Tha") >= 0 && q.indexOf("Tha") < 6) {
+      tnote = tnote + "<br>Codeset Tha supports Spanish except for ¡, ¿, ª, and º. ";
+    }
+    if (q.indexOf("Tha_Brl") >= 0 && q.indexOf("Tha_Brl") < 6) {
+      tnote = tnote + "<br>Codeset Tha_Brl supports Spanish except for ¡, ¿, ª, and º. ";
+    }
+    if ((q.indexOf("NEur_C") >= 0 && q.indexOf("NEur_C") < 6)
+        || (q.indexOf("NEur_M") >= 0 && q.indexOf("NEur_M") < 6)
+        || (q.indexOf("NEur_P") >= 0 && q.indexOf("NEur_P") < 6)) {
+      tnote = tnote + "<br>Codesets NEur_C, NEur_M, and NEur_P support Spanish except for ª and º. ";
+    }
+    if ((q.indexOf("EECA_C") >= 0 && q.indexOf("EECA_C") < 6)
+        || (q.indexOf("EECA_M") >= 0 && q.indexOf("EECA_M") < 6)
+        || (q.indexOf("EECA_P") >= 0 && q.indexOf("EECA_P") < 6)) {
+      tnote = tnote + "<br>Codesets EECA_C, EECA_M, and EECA_P support Spanish except for ª and º. ";
+    }
+    if ((q.indexOf("Geor_C") >= 0 && q.indexOf("Geor_C") < 6)
+        || (q.indexOf("Geor_M") >= 0 && q.indexOf("Geor_M") < 6)
+        || (q.indexOf("Geor_P") >= 0 && q.indexOf("Geor_P") < 6)
+        || (q.indexOf("Geor_L") >= 0 && q.indexOf("Geor_L") < 6)) {
+      tnote = tnote + "<br>Codesets Geor_C, Geor_M, Geor_P, and Geor_L support Spanish except for ¡, ¿, ª, and º. ";
+    }
+
+  }
+  if (qphase == 1) {
+    t = t + "<p>Select <em>all</em> alphabets that the codeset should support; afterwards <a href='#' onclick='qnextpage()'>proceed to language selection:</a></p>";
+  } else {
+    t = t + "<p>Select character sets, languages, or characters that should be supported:</p>";
+  }    
+  t = t + "<ul style='min-height:35ex;'>";
+  var q1;
+  var q2;
+  let cnt = 0;
+  if (forward) {
+    let i = nlow;
+    while (cnt < entriesperpage && i <= nmax && (qphase != 1 || e[i].eprereq != "")) {
+      q1 = q.filter(x => e[i].eset.includes(x));
+      q2 = q.filter(x => !e[i].eset.includes(x));
+      if (q1.length > 0 && (q2.length > 0 || (qphase == 1 && ! qalphabets.includes(e[i].eprereq) )) && qalphabets.includes(e[i].ealphabet)) {
+	titems = titems + "<li><a href='#' onclick='qupdate(" + i + ")'><strong>" + e[i].etext + "</strong></a></li>";
+	cnt++;
+      }
+      i++;
+    }
+    nhigh = i;
+    if (qphase == 1) {
+      nrotate = i;
+    }
+  } else {
+    let i = nlow - 1;
+    nhigh = nlow;
+    while (cnt < entriesperpage && i >= nrotate) {
+      q1 = q.filter(x => e[i].eset.includes(x));
+      q2 = q.filter(x => !e[i].eset.includes(x));
+      if (q1.length > 0 && q2.length > 0 && qalphabets.includes(e[i].ealphabet)) {
+	titems = "<li><a href='#' onclick='qupdate(" + i + ")'><strong>" + e[i].etext + "</strong></a></li>" + titems;
+	cnt++;
+      }
+      i--;
+    }
+    nlow = i + 1;
+  }
+  t = t + titems + "</ul>";
+
+  if (q.length < 1) {
+    alert("This shouldn't happen: q.length below 1");
+  } else if (q.length == 1) {
+    t = '<h3>Result</h3>';
+    t = t + "<p>Only one codeset remains: "  + q.map(x => ' <strong><a href="LinuxCodeSets.html#' + x.replace(/_.*/,"") + '">' + x.replace(/_Brl/,"") + '</a>' + x.replace(/.*_Brl/,"!").replace(/[^!]*/,"").replace(/!/,'_<a href="LinuxCodeSets.html#512braille">Brl</a>') + '</strong>').toString() + ".</p>";
+
+    t = t + "<p>";
+    if (qstack.length > 0) {
+      t = t + "<button class='nav' type='button' onclick='qpop()'>Undo last selection</button><br>";
+    }
+    t = t + "<button class='nav' type='button' onclick='qreset()'>Reset all</button></p>";
+    if (tnote != "") {
+      t = t + "<p><strong>Note:</strong> " + tnote + "</p>";
+    }
+
+    qsavess();
+    document.getElementById("q").innerHTML = t;
+    if (c == '1') {
+      setdarkmodebuttons();
+    }
+  } else if (cnt == 0) {
+    if (qphase == 1 || forward) {
+      nlow = nrotate;
+      nhigh = nrotate;
+    } else {
+      nlow = nmax + 1;
+      nhigh = nmax + 1;
+    }
+    if (qphase == 2) {
+      if (! qalphabets.includes("l")) {
+        qalphabets = qalphabets + "l";
+      } else {
+        qalphabets = qalphabets + "cg";
+      }
+    } else if (qphase == 3) {
+      if (! qalphabets.includes("c") || ! qalphabets.includes("g")) {
+        qalphabets = qalphabets + "cg";
+      } else {
+        qalphabets = qalphabets + "h";
+      }
+    } else if (qphase == 4) { 
+      qalphabets = qalphabets + "hakqt";
+    }
+    qphase++;
+    qdisplay(forward);
+  } else if (cnt < entriesperpage
+               && qphase > 1
+               && (nlow > nrotate || nhigh < nmax + 1)) {
+    if (nlow <= nrotate) {
+      nhigh = nrotate;
+      qdisplay(true);
+    } else {
+      nlow = nmax + 1;
+      qdisplay(false);
+    }
+  } else {
+
+    t = t + "<p>";
+    if (nlow > nrotate || nhigh <= nmax || qphase == 2) {
+      if (qphase == 1) {
+        t = t + "<button class='nav' type='button' onclick='qnextpage()'>Proceed to language selection &gt;</button><br>";
+      } else {
+        t = t + "<button class='nav' type='button' onclick='qprevpage()'>&lt; Previous page</button>&nbsp;";
+        t = t + "<button class='nav' type='button' onclick='qnextpage()'>Next page &gt;</button><br>";
+      }
+    }
+    if (qstack.length > 0) {
+      t = t + "<button class='nav' type='button' onclick='qpop()'>Undo last selection</button><br>";
+    }
+    t = t + "<button class='nav' type='button' onclick='qreset()'>Reset all</button></p>";
+    if (tnote != "") {
+      t = t + "<p><strong>Note:</strong> " + tnote + "</p>";
+    }
+
+    qsavess();
+    document.getElementById("q").innerHTML = t;
+    if (c == '1') {
+      setdarkmodebuttons();
+    }
+
+  }
+}
+
+</script>
+</head>
+
+<body id="all">
+
+<div style='position: fixed; top: 0; right: 0; z-index: -1; text-align: right'><button class='rightmargin' type="button"
+style="width: 15.5em;" onclick="if (c == '1') {
+  setbrightmode();
+  setLocal('ttyp0_darkmode', '0');
+  c = '0';
+} else {
+  setdarkmode();
+  setLocal('ttyp0_darkmode', '1');
+  c = '1';
+}">DARK MODE / BRIGHT MODE<div id="cookienote"></div></button>
+</div>
+
+<h1>UW ttyp0 Interactive Codeset Selector</h1>
+
+<div id="q"></div>
+
+<script>
+qinitialize();
+</script>
+
+</body>

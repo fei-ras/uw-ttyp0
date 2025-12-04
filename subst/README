@@ -1,0 +1,23 @@
+The "bdf2psf" utility that is used to generate Linux console fonts
+expects an "equivalences" file as argument and uses this file to
+determine characters that should share the same glyph. The file
+"unicode.subst" lists possible replacement characters for characters
+that are not contained in some encoding, but it provides a preference
+list, not an equivalence list: An entry "A B C" indicates that if
+character A is not present, it should be replaced preferably by B and
+at a pinch by C. It does not indicate that A, B, and C look the same,
+or that A should be replaced by B even if A is present, or that A or B
+are suitable replacements for C, or that A or C are suitable
+replacements for B. For any given encoding, "bdftoequiv" converts
+"unicode.subst" into an "equ" file that can be used by "bdf2psf".
+
+Some of the replacements in "unicode.subst" depend on the specific
+shapes of glyphs in UW ttyp0. They may not look good with other fonts.
+Similarly, replacements that are suitable for other fonts may not be
+appropriate for UW ttyp0.
+
+The Linux console does not handle combining accents properly. Instead
+of printing combining accents above or below the base letter, it
+prints the combining accent after the base letter. Some of the
+replacements in "unicode.subst" exploit this deficiency; they would
+be unsuited if the Linux console were able of overprinting.

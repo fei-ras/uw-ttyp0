@@ -1,0 +1,1388 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Codesets for UW ttyp0 Linux Console Fonts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style>
+body {
+        background: rgb(100%,100%,100%);
+        color: #111111;
+        font: 120% Arial, Verdana, Helvetica, sans-serif;
+        margin: 0em 1em 0em 1em;
+        border: 0px solid rgb(100%,100%,100%);
+        border-width: 0px 0;
+        max-width: 50em;
+}
+
+a:link {
+        color: #3388ff;
+        background-color: transparent;
+        text-decoration: none;
+}
+
+a:visited {
+        color: #3388ff;
+        background-color: transparent;
+        text-decoration: none;
+}
+
+a:hover {
+        color: #ee5522;
+        background-color: transparent;
+        text-decoration: underline;
+}
+
+h1 {
+        font: bold 200% Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.5em 0em 0.4em 0em;
+        border: 0px solid rgb(100%,100%,100%);
+        border-width: 0px 0;
+        line-height: 1.2;
+}
+
+h2 {
+        font: bold 180%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.4em 0em 0.1em;
+        line-height: 1.2;
+}
+
+h3 {
+        font: bold 140%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.3em 0em 0.2em; 
+        line-height: 1.2;
+}
+
+h4 {
+        font: bold 120%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.0em 0em 0.0em;
+        margin-bottom: 0.5em;
+        line-height: 1.2;
+}
+
+h5 {
+        font: bold 110%/1em Arial, Verdana, Helvetica, sans-serif;
+        padding: 0.0em 0em 0.0em;
+        margin-bottom: 0.5em;
+        line-height: 1.2;
+}
+
+p {
+        line-height: 1.3;
+        padding: 0.1em 0em;
+        margin: 0em 0em 1em;
+}
+
+li {
+        line-height: 1.3;
+        padding: 0.5em 0.0em 0.0em;
+}
+
+img {
+        border-style: none;
+        margin: 5px 0px 5px 0px;
+}
+
+table, th, td {
+        border: 1px solid gray;
+        border-collapse: collapse;
+}
+
+th, td {
+        padding: 0.5em;
+        vertical-align: top;
+        text-align: left;
+}
+
+th {
+        text-align: left;
+}
+
+button {
+        margin-top: 10px;
+	margin-bottom: 0px;
+	margin-right: 5px;
+	margin-left: 5px;
+        background-color: #ffddcc;
+	border: solid;
+        border-width: 1px;
+	color: black;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+}
+
+.rightmargin {
+        padding: 6px 1px;
+        font: 80% Arial, Verdana, Helvetica, sans-serif;
+}
+
+</style>
+<script>
+var c = '0';
+
+// sadly, local cookies are broken on certain browsers, e.g., chromium,
+// and local storage is broken on others, e.g., firefox.
+
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrom') > -1;
+
+function setLocal(cname, cvalue) {
+  document.getElementById("cookienote").innerHTML = "";
+  if (is_chrome) {
+    localStorage.setItem(cname, cvalue);
+  } else {
+    document.cookie = cname + "=" + cvalue + ";" + "max-age=3153600000;SameSite=Lax;" + "path=/;";
+  }
+}
+
+function getLocal(cname) {
+  if (is_chrome) {
+    return localStorage.getItem(cname);
+  } else {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var ck = ca[i];
+      while (ck.charAt(0) == ' ') {
+        ck = ck.substring(1);
+      }
+      if (ck.indexOf(name) == 0) {
+        return ck.substring(name.length, ck.length);
+      }
+    }
+    return "";
+  }
+}
+
+function setbrightmodesamples() {
+  var elements = document.querySelectorAll(".sample");
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].style.filter = "";
+  }
+}
+
+function setbrightmodebuttons() {
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].style.color = "black";
+    buttons[i].style.backgroundColor = "#ffddcc";
+  }
+}
+
+function setbrightmode() {
+  document.getElementById("all").style.background = "rgb(100%,100%,100%)";
+  document.getElementById("all").style.color = "#111111";
+  setbrightmodesamples();
+  setbrightmodebuttons();
+}
+
+function setdarkmodesamples() {
+  var elements = document.querySelectorAll(".sample");
+  for (var i = 0; i < elements.length; i++) {
+    elements[i].style.filter = "invert(100%) saturate(230%) brightness(120%) contrast(65%)";
+  }
+}
+
+function setdarkmodebuttons() {
+  var buttons = document.querySelectorAll("button");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].style.color = "white";
+    buttons[i].style.backgroundColor = "#aa2211";
+  }
+}
+
+function setdarkmode() {
+  document.getElementById("all").style.background = "rgb(10%,10%,10%)";
+  document.getElementById("all").style.color = "#eeeeee";
+  setdarkmodesamples();
+  setdarkmodebuttons();
+}
+
+window.onload = function() {
+  c = getLocal("ttyp0_darkmode");
+  if (c != "0" && c != "1") {
+    c = "";
+    switch(window.location.protocol) {
+      case 'http:':
+      case 'https:':
+        document.getElementById("cookienote").innerHTML = "(sets a cookie)";
+    }
+  }
+  if (c == "1") {
+    setdarkmode();
+  } else {
+    setbrightmode();
+  }
+};
+</script>
+</head>
+
+<body id="all">
+
+<div style='position: fixed; top: 0; right: 0; z-index: -1; text-align: right'><button class='rightmargin' type="button"
+style="width: 15.5em;" onclick="if (c == '1') {
+  setbrightmode();
+  setLocal('ttyp0_darkmode', '0');
+  c = '0';
+} else {
+  setdarkmode();
+  setLocal('ttyp0_darkmode', '1');
+  c = '1';
+}">DARK MODE / BRIGHT MODE<div id="cookienote"></div></button>
+<br>
+<button class='rightmargin' type="button" style="width: 15.5em;"
+onclick="window.sessionStorage.removeItem('LinuxCodeSetSelectorState'); window.location.href='LinuxCodeSetSelector.html';">
+Use the Interactive Codeset Selector to
+find a codeset that supports a particular list of properties,
+character sets, languages, or characters.</div>
+</button>
+</div>
+
+<h1>Codesets for UW ttyp0 Linux Console Fonts</h1>
+
+<h2 id="Intro">Introduction</h2>
+
+<p>The Linux console distinguishes between <em>encodings</em>
+and <em>codesets.</em>
+The <em>encoding</em> determines the meaning of bytes or byte sequences
+by mapping positions to abstract characters.
+If the encoding is not Unicode,
+it is typically one of the standard 8-bit encodings such as ISO-8859-1
+(which is then internally translated to Unicode).
+On the other hand,
+the <em>codeset</em> determines which characters are supported by a font.
+This set of characters need not be in one-to-one correspondence
+to the set of characters supported by the chosen encoding:
+If the encoding is Unicode, the codeset will contain only a subset
+of all Unicode characters;
+if the encoding is an 8-bit encoding such as ISO-8859-1,
+the codeset may contain additional characters that are not included
+in the encoding.</p>
+
+<p>The Linux console supports fonts with upto 512 glyphs. However,
+the full
+set of console colors (eight regular and eight bright colors) is
+only available if the number of glyphs in the current font
+does not exceed 256.
+If a font that contains more than 256 glyphs is used,
+the eight bright colors are lost.</p>
+
+<p>UW ttyp0 can be installed on the Linux console with various
+256-glyph and 512-glyph codesets.
+In order to cover as many languages as possible with a limited
+number of glyphs, these codesets represent characters
+with the same or a very similar appearance by the same glyph.
+That means, for instance, that the Greek Η (Eta), the Cyrillic
+Н (En) and the Latin H share the same glyph, but also,
+that the empty set character ∅ may look like the
+Danish Ø (O with stroke), or
+that the Yen character ¥ (Y with double horizontal stroke) may look   
+like the Kazakh Cyrillic character Ұ (Y with single horizontal stroke)
+in some fonts.</p>
+
+<p id="CaveatComb">The Linux console does not support the composition of glyphs from
+combining characters.
+For European languages, this is unproblematic.
+Many languages, however, use characters that can only be
+represented in Unicode as a combination of a base character and
+one or more combining characters.
+For example the Navajo letter “ą́”
+consists of “ą” (small “a” with ogonek)
+plus a combining acute accent “◌́”
+and the Yoruba letter “ẹ̀”
+consists of “ẹ” (small “e” with dot below)
+plus a combining grave accent “◌̀”.
+Similarly, the name of the Thai district “ลี้” (“Li”) consists of the consonant
+letter “ล”, the combining vowel sign “◌ี”,
+and the combining tone mark “◌้” stacked above each other.
+The codesets below contain the combining characters
+necessary for these languages,
+but without support from the console driver,
+they will be displayed wrongly: after the base letter instead of
+above/below the base letter. Moreover,
+text editors will then make incorrect
+assumptions about the cursor position, leading to further display problems.
+For Hebrew vowel marks, the situation is even worse,
+because the right-to-left writing direction exacerbates the problem.
+(Actually, the Linux console font format <em>PSF</em> makes it
+possible to declare that some glyph corresponds to a sequence of
+a base letter and a combining accent, so a limited support for
+combining accents should be possible.
+Regrettably, the Linux console driver seems to ignore these
+declarations.)</p>
+
+<p><strong>TL;DR:
+The description of the available codesets below is quite lengthy.
+If you need a codeset that supports a particular list of properties,
+character sets, languages, or characters, try the
+<a onclick="window.sessionStorage.removeItem('LinuxCodeSetSelectorState');" href="LinuxCodeSetSelector.html">Interactive Codeset Selector</a>.</strong></p>
+
+<h2 id="TOC">Contents</h2>
+
+<ul>
+<li> <a href="#256gl">256-glyph codesets</a>
+  <ul>
+  <li> <a href="#256isolike">ISO-8859-like codesets</a>
+    <ul>
+    <li> <a href="#256enca">Europe, North/Central Asia</a>:
+         <br><a href="#WET">WET</a>,
+             <a href="#WCE">WCE</a>,
+	     <a href="#CEu">CEu</a>,
+	     <a href="#Bal">Bal</a>,
+	     <a href="#Sam">Sam</a>,
+	     <a href="#NWE">NWE</a>,
+	     <a href="#SEu">SEu</a>,
+	     <a href="#GkC">GkC</a>,
+	     <a href="#GkW">GkW</a>,
+	     <a href="#EEC">EEC</a>,
+	     <a href="#EEW">EEW</a>,
+	     <a href="#EEA">EEA</a>
+    <li> <a href="#256nec">Near East, Caucasus</a>:
+         <br><a href="#HbR">HbR</a>,
+             <a href="#HbW">HbW</a>,
+	     <a href="#Arm">Arm</a>,
+	     <a href="#Geo">Geo</a>
+    <li> <a href="#256afr">Africa</a>:
+         <br><a href="#AfP">AfP</a>,
+             <a href="#AfS">AfS</a>,
+             <a href="#AfU">AfU</a>
+    <li> <a href="#256ame">The Americas</a>:
+         <br><a href="#MSA">MSA</a>
+    <li> <a href="#256seaao">Southeast Asia and East Asia, Australia, Oceania</a>:
+         <br><a href="#Tha">Tha</a>,
+             <a href="#Vie">Vie</a>,
+             <a href="#SAO">SAO</a>
+    </ul>
+  <li> <a href="#256pclike">PC-like codesets</a>:
+         <br><a href="#437">437</a>,
+             <a href="#775">775</a>,
+	     <a href="#850">850</a>,
+	     <a href="#852">852</a>,
+	     <a href="#857">857</a>,
+	     <a href="#860">860</a>,
+	     <a href="#861">861</a>,
+	     <a href="#862">862</a>,
+	     <a href="#863">863</a>,
+	     <a href="#865">865</a>,
+	     <a href="#DGk">DGk</a>,
+	     <a href="#DCW">DCW</a>,
+	     <a href="#DCE">DCE</a>,
+	     <a href="#maz">maz</a>,
+	     <a href="#kam">kam</a>,
+	     <a href="#cwi">cwi</a>,
+	     <a href="#Koi">Koi</a>,
+             <a href="#MIK">MIK</a>
+  <li> <a href="#256braille">Braille codeset</a>:
+         <br><a href="#Brl">Brl</a>
+  </ul>
+
+<li> <a href="#512gl">512-glyph codesets</a>
+  <ul>
+  <li> <a href="#512std">Standard codesets</a>
+    <ul>
+    <li> <a href="#512enca">Europe, North/Central Asia</a>:
+         <br><a href="#WEur">WEur</a>,
+             <a href="#CEur">CEur</a>,
+	     <a href="#NEur">NEur</a>,
+	     <a href="#EECA">EECA</a>
+    <li> <a href="#512nec">Near East, Caucasus</a>:
+         <br><a href="#Hebr">Hebr</a>,
+             <a href="#Armn">Armn</a>,
+	     <a href="#Geor">Geor</a>,
+             <a href="#AAEGGH">AAEGGH</a>
+    <li> <a href="#512afr">Africa</a>:
+         <br><a href="#NAfr">NAfr</a>,
+             <a href="#AfrP">AfrP</a>,
+             <a href="#AfrU">AfrU</a>
+    <li> <a href="#512ame">The Americas</a>:
+         <br><a href="#NAme">NAme</a>,
+             <a href="#BCWa">BCWa</a>,
+	     <a href="#MSAm">MSAm</a>
+    <li> <a href="#512seaao">Southeast and East Asia, Australia, Oceania</a>:
+         <br><a href="#Thai">Thai</a>,
+             <a href="#Viet">Viet</a>,
+             <a href="#SEAO">SEAO</a>
+    <li> <a href="#512hist">Esperanto, historic languages, old orthographies</a>:
+         <br><a href="#Espr">Espr</a>,
+             <a href="#NWEu">NWEu</a>,
+             <a href="#OldCyr">OldCyr</a>,
+	     <a href="#PolyGk">PolyGk</a>
+    </ul>
+  <li> <a href="#512braille">Combined Braille codesets</a>
+  </ul>
+
+<li> <a href="#consolesetup">Compatibility codeset names for console-setup:
+     <br>Armenian, CyrAsia, CyrKoi, CyrSlav, Georgian, Greek, Hebrew,
+         Lat15, Lat2, Lat38, Lat7, Thai,
+         Uni1, Uni2, Uni3, Vietnamese</a>
+
+<li> <a href="#machinereadable">Machine-readable codeset descriptions</a>
+
+</ul>
+
+
+<h2 id="256gl">256-glyph codesets</h2>
+
+<h3 id="256isolike">ISO-8859-like codesets</h3>
+
+<p>The following 256-glyph codesets extend one or more ISO-8859
+(or similar) encodings. They also support basic (single-line)
+line graphics.</p>
+
+<h4 id="256enca">Europe, North/Central Asia</h4>
+
+<h5 id="WET"><strong>WET</strong>: LC 256 Western European and Turkish.</h5>
+  <p>The <strong>WET</strong> codeset
+  covers ISO-8859-1/CP1252, ISO-8859-15 (W Eur Latin), and
+  ISO-8859-9/CP1254 (Turkish).
+  It also supports Slovene:
+  <br><img class="sample" src="img/WET_S.png" alt="[Sample img/WET_S.png]"><br></p>
+<h5 id="WCE"><strong>WCE</strong>: LC 256 Western and Central European.</h5>
+  <p>The <strong>WCE</strong> codeset
+  covers ISO-8859-2 (E Eur Latin) except spacing accents,
+  ISO-8859-15 (W Eur Latin), and ISO-8859-16 (SE Eur Latin):
+  <br><img class="sample" src="img/WCE_S.png" alt="[Sample img/WCE_S.png]"><br></p>
+<h5 id="CEu"><strong>CEu</strong>: LC 256 Central European.</h5>
+  <p>The <strong>CEu</strong> codeset
+  covers ISO-8859-2/CP1250 (E Eur Latin).
+  It also supports Spanish (except ¡, ¿, ª, º) and Swedish:
+  <br><img class="sample" src="img/CEu_S.png" alt="[Sample img/CEu_S.png]"><br></p>
+<h5 id="Bal"><strong>Bal</strong>: LC 256 Baltic.</h5>
+  <p>The <strong>Bal</strong> codeset
+  covers ISO-8859-13/CP1257 (Baltic, Scandinavian, Polish).
+  It also supports French:
+  <br><img class="sample" src="img/Bal_S.png" alt="[Sample img/Bal_S.png]"><br></p>
+<h5 id="Sam"><strong>Sam</strong>: LC 256 Sami.</h5>
+  <p>The <strong>Sam</strong> codeset
+  covers ISO-8859-1/CP1252, ISO-8859-15 (W Eur Latin), and CP1270 (Sami).
+  <br><img class="sample" src="img/Sam_S.png" alt="[Sample img/Sam_S.png]"><br></p>
+<h5 id="NWE"><strong>NWE</strong>: LC 256 North-Western European.</h5>
+  <p>The <strong>NWE</strong> codeset
+  covers ISO-8859-14 (Celtic):
+  <br><img class="sample" src="img/NWE_S.png" alt="[Sample img/NWE_S.png]"><br></p>
+<h5 id="SEu"><strong>SEu</strong>: LC 256 Southern European/Esperanto.</h5>
+  <p>The <strong>SEu</strong> codeset
+  covers ISO-8859-3 (Esperanto, German, Italian, Maltese, Spanish, Turkish).
+  It also supports Croatian, Dutch, French, and Swedish:
+  <br><img class="sample" src="img/SEu_S.png" alt="[Sample img/SEu_S.png]"><br></p>
+<h5 id="GkC"><strong>GkC</strong>: LC 256 Greek C.</h5>
+  <p>The <strong>GkC</strong> codeset
+  covers ISO-8859-7/CP1253 (Greek).
+  It also supports Albanian, Croatian, Romanian, and Turkish:
+  <br><img class="sample" src="img/GkC_S.png" alt="[Sample img/GkC_S.png]"><br></p>
+<h5 id="GkW"><strong>GkW</strong>: LC 256 Greek W.</h5>
+  <p>The <strong>GkW</strong> codeset
+  covers ISO-8859-7 (Greek).
+  It also supports Dutch, French, German, Italian, Portuguese, Spanish,
+  and Swedish:
+  <br><img class="sample" src="img/GkW_S.png" alt="[Sample img/GkW_S.png]"><br></p>
+<h5 id="EEC"><strong>EEC</strong>: LC 256 Eastern European C.</h5>
+  <p>The <strong>EEC</strong> codeset
+  covers ISO-8859-5/CP1251 (E Eur Cyrillic).
+  It also supports Croatian and Montenegrin:
+  <br><img class="sample" src="img/EEC_S.png" alt="[Sample img/EEC_S.png]"><br></p>
+<h5 id="EEW"><strong>EEW</strong>: LC 256 Eastern European W.</h5>
+  <p>The <strong>EEW</strong> codeset
+  covers ISO-8859-5 (E Eur Cyrillic).
+  It also supports Estonian, French, German, Italian, and Swedish:
+  <br><img class="sample" src="img/EEW_S.png" alt="[Sample img/EEW_S.png]"><br></p>
+<h5 id="EEA"><strong>EEA</strong>: LC 256 Eastern European and Asian.</h5>
+  <p>The <strong>EEA</strong> codeset
+  covers PARATYPE-PT154 (Asian Cyrillic).
+  It also supports Evenki, Komi, Nenets, Ossetian, and Ukrainian:
+  <br><img class="sample" src="img/EEA_S.png" alt="[Sample img/EEA_S.png]"><br></p>
+
+<h4 id="256nec">Near East, Caucasus</h4>
+
+<h5 id="HbR"><strong>HbR</strong>: LC 256 Hebrew R.</h5>
+  <p>The <strong>HbR</strong> codeset
+  covers ISO-8859-8 (Hebrew).
+  It also supports Russian and Ukranian:
+  <br><img class="sample" src="img/HbR_S.png" alt="[Sample img/HbR_S.png]"><br></p>
+<h5 id="HbW"><strong>HbW</strong>: LC 256 Hebrew W.</h5>
+  <p>The <strong>HbW</strong> codeset
+  covers ISO-8859-8 (Hebrew).
+  It also supports Dutch, French, German, Italian, Spanish (except ª, º), Swedish,
+  and Turkish:
+  <br><img class="sample" src="img/HbW_S.png" alt="[Sample img/HbW_S.png]"><br></p>
+<h5 id="Arm"><strong>Arm</strong>: LC 256 Armenian.</h5>
+  <p>The <strong>Arm</strong> codeset
+  covers ARMSCII-8.
+  It also supports French:
+  <br><img class="sample" src="img/Arm_S.png" alt="[Sample img/Arm_S.png]"><br></p>
+<h5 id="Geo"><strong>Geo</strong>: LC 256 Georgian.</h5>
+  <p>The <strong>Geo</strong> codeset
+  covers Georgian-PS/Georgian-Academy (except some Latin letters).
+  It also supports Azeri, French, German,
+  and Turkish:
+  <br><img class="sample" src="img/Geo_S.png" alt="[Sample img/Geo_S.png]"><br></p>
+
+<h4 id="256afr">Africa</h4>
+
+<h5 id="AfP"><strong>AfP</strong>: LC 256 African P.</h5>
+  <p>The <strong>AfP</strong> codeset
+  supports Bambara, Fulfulde, Hausa, Kanuri, Kikuyu, Lingala, Luganda, Moore,
+  Twi, Wolof, and many other indigenous languages
+  from West, Central, and East Africa
+  (except Southern Nigeria),
+  as well as French, Portuguese, and Spanish:
+  <br><img class="sample" src="img/AfP_S.png" alt="[Sample img/AfP_S.png]"><br>
+  Note that the Linux console does not handle
+  <a href="#CaveatComb">combining characters</a> correctly.</p>
+<h5 id="AfS"><strong>AfS</strong>: LC 256 African S.</h5>
+  <p>The <strong>AfP</strong> codeset
+  supports most indigenous Southern African languages, such as
+  Chewa/Nyanja, Herero, Malagasy, Nama/Damara, Pedi, Tswa, and Venda,
+  as well as Afrikaans, Dutch, French, German, Italian, Portuguese,
+  Slovene, Spanish, and Swedish:
+  <br><img class="sample" src="img/AfS_S.png" alt="[Sample img/AfS_S.png]"><br>
+  Note that the Linux console does not handle
+  <a href="#CaveatComb">combining characters</a> correctly.</p>
+<h5 id="AfU"><strong>AfU</strong>: LC 256 African U.</h5>
+  <p>The <strong>AfU</strong> codeset supports
+  Ibibio, Igbo, Izon, Kirike, Yoruba
+  and other indigenous African languages primarily from Southern Nigeria,
+  as well as French, Portuguese, and Spanish:
+  <br><img class="sample" src="img/AfU_S.png" alt="[Sample img/AfU_S.png]"><br>
+  Note that the Linux console does not handle
+  <a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h4 id="256ame">The Americas</h4>
+
+<h5 id="MSA"><strong>MSA</strong>: LC 256 Mesoamerican and South American.</h5>
+  <p>The <strong>MSA</strong> codeset
+  supports many indigenous languages of Mexico and Central and South America,
+  as well as Dutch, French, German, Italian, Portuguese, and Spanish:
+  <br><img class="sample" src="img/MSA_S.png" alt="[Sample img/MSA_S.png]"><br>
+  Note that the Linux console does not handle
+  <a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h4 id="256sea">Southeast and East Asia</h4>
+
+<h5 id="Tha"><strong>Tha</strong>: LC 256 Thai.</h5>
+  <p>The <strong>Tha</strong> codeset
+  covers TIS 620-0/ISO-8859-11.
+  It also supports Dutch, German, Irish, and Spanish (except ¡, ¿, ª, º):
+  <br><img class="sample" src="img/Tha_S.png" alt="[Sample img/Tha_S.png]"><br>
+  Note that the Linux console does not handle
+  <a href="#CaveatComb">combining characters</a> correctly.</p>
+<h5 id="Vie"><strong>Vie</strong>: LC 256 Vietnamese.</h5>
+  <p>The <strong>Vie</strong> codeset
+  covers TCVN-5712/VISCII-1.1:
+  <br><img class="sample" src="img/Vie_S.png" alt="[Sample img/Vie_S.png]"><br></p>
+<h5 id="SAO"><strong>SAO</strong>: LC 256 Southeast and East Asian, Australian, Oceanian.</h5>
+  <p>The <strong>SAO</strong> codeset
+  supports many languages of Southeast and East Asia, Australia, and Oceania,
+  as well as Dutch, French, German, Italian, Portuguese, and Spanish:
+  <br><img class="sample" src="img/SAO_S.png" alt="[Sample img/SAO_S.png]"><br>
+  Note that the Linux console does not handle
+  <a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h3 id="256pclike">PC-like codesets</h3>
+
+<p>The following 256-glyph codesets are more or less based on the
+traditional IBM PC code pages. Empty slots in the original code
+pages are filled with currency signs (€, ₺, ₪) and mathematical
+symbols (≤, ≥, ≠).
+</p>
+
+<h5 id="437"><strong>437</strong>: Original IBM PC codeset CP437.</h5>
+  <p><img class="sample" src="img/437_S.png" alt="[Sample img/437_S.png]"><br></p>
+<h5 id="775"><strong>775</strong>: IBM PC CP775 (DOSBaltRim).</h5>
+  <p><img class="sample" src="img/775_S.png" alt="[Sample img/775_S.png]"><br></p>
+<h5 id="850"><strong>850</strong>: IBM PC CP850 (DOSLatin1).</h5>
+  <p><img class="sample" src="img/850_S.png" alt="[Sample img/850_S.png]"><br>
+  Note that CP850 is supposed to support French, but does not contain
+  Œ, œ, and Ÿ.</p>
+<h5 id="852"><strong>852</strong>: IBM PC CP852 (DOSLatin2).</h5>
+  <p><img class="sample" src="img/852_S.png" alt="[Sample img/852_S.png]"><br></p>
+<h5 id="857"><strong>857</strong>: IBM PC CP857 (DOSTurkish).</h5>
+  <p><img class="sample" src="img/857_S.png" alt="[Sample img/857_S.png]"><br></p>
+<h5 id="860"><strong>860</strong>: IBM PC CP860 (DOSPortuguese).</h5>
+  <p><img class="sample" src="img/860_S.png" alt="[Sample img/860_S.png]"><br></p>
+<h5 id="861"><strong>861</strong>: IBM PC CP861 (DOSIcelandic).</h5>
+  <p><img class="sample" src="img/861_S.png" alt="[Sample img/861_S.png]"><br></p>
+<h5 id="862"><strong>862</strong>: IBM PC CP862 (DOSHebrew).</h5>
+  <p><img class="sample" src="img/862_S.png" alt="[Sample img/862_S.png]"><br></p>
+<h5 id="863"><strong>863</strong>: IBM PC CP863 (DOSCanadaF).</h5>
+  <p><img class="sample" src="img/863_S.png" alt="[Sample img/863_S.png]"><br>
+  Note that CP863 is supposed to support French, but does not contain
+  Œ, œ, Ÿ, and ÿ.</p>
+<h5 id="865"><strong>865</strong>: IBM PC CP865 (DOSNordic).</h5>
+  <p><img class="sample" src="img/865_S.png" alt="[Sample img/865_S.png]"><br></p>
+<h5 id="DGk"><strong>DGk</strong>: IBM PC CP737/CP869 (Greek).</h5>
+  <p><img class="sample" src="img/DGk_S.png" alt="[Sample img/DGk_S.png]"><br></p>
+<h5 id="DCW"><strong>DCW</strong>: IBM PC CP855/CP872 and ISO-8859-5 (European Cyrillic).</h5>
+  <p><img class="sample" src="img/DCW_S.png" alt="[Sample img/DCW_S.png]"><br></p>
+<h5 id="DCE"><strong>DCE</strong>: IBM PC CP808/CP848/CP849/CP866/CP1125/CP1131 (Russian, Belarusian, Ukrainian).</h5>
+  <p><img class="sample" src="img/DCE_S.png" alt="[Sample img/DCE_S.png]"><br></p>
+<h5 id="maz"><strong>maz</strong>: Mazovia codeset (Polish).</h5>
+  <p><img class="sample" src="img/maz_S.png" alt="[Sample img/maz_S.png]"><br></p>
+<h5 id="kam"><strong>kam</strong>: Kamenicky codeset (Czech, Slovak).</h5>
+  <p><img class="sample" src="img/kam_S.png" alt="[Sample img/kam_S.png]"><br></p>
+<h5 id="cwi"><strong>cwi</strong>: CWI-2 codeset (Hungarian).</h5>
+  <p><img class="sample" src="img/cwi_S.png" alt="[Sample img/cwi_S.png]"><br></p>
+<h5 id="Koi"><strong>Koi</strong>: KOI8 codeset (Belarusian, Russian, Ukranian, some Asian Cyrillic).</h5>
+  <p><img class="sample" src="img/Koi_S.png" alt="[Sample img/Koi_S.png]"><br></p>
+<h5 id="MIK"><strong>MIK</strong>: MIK codeset (Bulgarian).</h5>
+  <p><img class="sample" src="img/MIK_S.png" alt="[Sample img/MIK_S.png]"><br></p>
+
+<h3 id="256braille">Braille codeset</h3>
+
+<p>Braille is a tactile writing system
+for people who are blind or have low vision.
+The <strong>Brl</strong> codeset
+contains the 256 Braille symbols in Unicode.</p>
+
+<h5 id="Brl"><strong>Brl</strong>: Braille codeset.</h5>
+  <img class="sample" src="img/Brl_S.png" alt="[Sample img/Brl_S.png]"><br>
+
+
+<h2 id="512gl">512-glyph codesets</h2>
+
+<p>The 512-glyph codesets for UW ttyp0 on the Linux console
+fall into two categories: <a href="#512std">standard codesets</a>
+and <a href="#512braille">combined Braille codesets</a>.</p>
+
+<h3 id="512std">Standard codesets</h3>
+
+<p>The UW ttyp0 distribution provides 21 standard 512-glyph codesets.
+All of them contain the following (or similar) glyphs:
+<br><img class="sample" src="img/StdRepertoire.png" alt="[Sample img/StdRepertoire.png]"><br>
+That means that they all cover ASCII,
+some accented letters,
+basic typographic and mathematical characters
+(including non-accented Greek),
+and line graphics
+(single-line and double-line, but not mixed).</p>
+
+<p id="MCPL">Most of the standard codesets
+(except <strong>AAEGGH</strong>, <strong>OldCyr</strong>,
+and <strong>PolyGk</strong>)
+come in four variants,
+denoted by the suffixes <strong>_L</strong>,
+<strong>_M</strong>, <strong>_C</strong>, and <strong>_P</strong>.
+The <strong>_L</strong> codesets support additional scripts and languages
+and are explained below.
+The <strong>_M</strong> codesets support additional
+mathematical and technical characters:
+<br><img class="sample" src="img/_M.png" alt="[Sample img/_M.png]"><br>
+The <strong>_C</strong> codesets support the full set of IBM CP 437 graphics:
+<br><img class="sample" src="img/_C.png" alt="[Sample img/_C.png]"><br>
+The <strong>_P</strong> codesets support Powerline characters
+and some more graphics characters that are useful for
+prompts or status lines:
+<br><img class="sample" src="img/_P.png" alt="[Sample img/_P.png]"><br>
+Note that the last 18 characters in the _P sample
+are located in the Unicode Private Use Area,
+which means that they may not be supported by other fonts
+– the last 11 characters are available in Font Awesome
+and in patched “Nerd Fonts”,
+the remaining 7 are available in “Nerd Fonts” and
+in Powerline-compatible fonts.
+(The last 11 characters would also be available in Unicode Plane 1
+(that is, characters between U+10000 and U+1FFFF);
+unfortunately, the Linux console supports only Plane 0,
+that is, characters between U+0000 and U+FFFF.)</p>
+
+
+<h4 id="512enca">Europe, North/Central Asia:</h4>
+
+<h5 id="WEur"><strong>WEur<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Western European.</h5>
+<p>The <strong>WEur</strong> codesets support almost all Latin-script
+languages of Europe and Western Asia
+(except Azeri, Laz, Livonian,
+Finnish Romani, and Skolt Sami)
+as well as monotonic Greek:
+<br><img class="sample" src="img/WEur_all.png" alt="[Sample img/WEur_all.png]"><br>
+<strong>WEur_L</strong> supports also Finnish Romani, Skolt Sami and all Slavic Cyrillic-script languages:
+<br><img class="sample" src="img/WEur_L.png" alt="[Sample img/WEur_L.png]"><br>
+<strong>WEur_{M,C,P,L}</strong> covers
+ISO-8859-1/2/7/9/13/15/16 and CP1250/1252/1253/1254/1257;
+<strong>WEur_L</strong> covers also ISO-8859-5 and CP1251/1270.
+
+For accented Danish, dotted Irish, Old English, and Old Norse see <strong><a href="#NWEu">NWEu</a></strong>;
+for Livonian see <strong><a href="#NEur">NEur</a></strong>;
+for Azeri see <strong><a href="#CEur">CEur_L</a></strong>,
+<strong><a href="#EECA">EECA</a></strong>,
+<strong><a href="#Armn">Armn</a></strong>,
+and <strong><a href="#Geor">Geor</a></strong>;
+for Laz see <strong><a href="#Geor">Geor</a></strong>;
+for polytonic Greek see <strong><a href="#PolyGk">PolyGk</a></strong>;
+for Finnish Romani and Skolt Sami see also
+<strong><a href="#NEur">NEur</a></strong>;
+for Cyrillic see also <strong><a href="#CEur">CEur</a></strong>,
+<strong><a href="#NEur">NEur</a></strong>,
+and <strong><a href="#EECA">EECA</a></strong>.</p>
+
+<h5 id="CEur"><strong>CEur<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Central European.</h5>
+<p>The <strong>CEur</strong> codesets support most Latin-script languages
+of Europe and Western Asia (except Asturian, Azeri, Faroese, Icelandic,
+Latvian, Laz, Livonian, Lithuanian, Maltese,
+Finnish Romani, Macedonian Romani, Sami, Welsh),
+monotonic Greek, and all Slavic Cyrillic-script languages:
+<br><img class="sample" src="img/CEur_all.png" alt="[Sample img/CEur_all.png]"><br>
+<strong>CEur_L</strong> supports almost all Latin-script languages
+of Europe, Western Asia, and Central Asia (except Asturian, Laz, Livonian, Finnish Romani,
+and Skolt Sami),
+monotonic Greek,
+all Slavic Cyrillic-script languages,
+Gagauz (<em>Cyr</em>), Moldovan (<em>Cyr</em>),
+and some Cyrillic-script languages of Central Asia, e.g.,
+Kyrgyz, Mongolian, Tatar, and Turkmen:
+<br><img class="sample" src="img/CEur_L.png" alt="[Sample img/CEur_L.png]"><br>
+<strong>CEur_{M,C,P,L}</strong> covers
+ISO-8859-2/5/9/16 and CP1250/1251/1253/1254;
+<strong>CEur_L</strong> covers also ISO-8859-1/7/13/15 and CP1252/1257;
+<strong>CEur_C</strong> covers also KOI8 (Rus/Ukr).
+
+For Asturian see <strong><a href="#WEur">WEur</a></strong>
+and <strong><a href="#NWEu">NWEu_L</a></strong>;
+for Sami, Livonian, and Finnish Romani see <strong><a href="#NEur">NEur</a></strong>;
+for Laz see <strong><a href="#Geor">Geor</a></strong>;
+for polytonic Greek see <strong><a href="#PolyGk">PolyGk</a></strong>;
+for Old Cyrillic see <strong><a href="#OldCyr">OldCyr</a></strong>;
+for Esperanto and further non-European currency symbols see <strong><a href="#Espr">Espr</a></strong>.
+For Icelandic, Maltese, Welsh, the Dutch “Ĳ/ĳ” ligature, the Catalan “Ŀ/ŀ”, the German capital “ẞ”, and the Irish “⁊” sign see also <strong><a href="#WEur">WEur</a></strong> and <strong><a href="#NWEu">NWEu</a></strong>;
+for Azeri see also <strong><a href="#EECA">EECA</a></strong>,
+<strong><a href="#Armn">Armn</a></strong>,
+and <strong><a href="#Geor">Geor</a></strong>;
+for Faroese, Latvian, and Lithuanian see also <strong><a href="#WEur">WEur</a></strong>, <strong><a href="#NWEu">NWEu</a></strong>, and <strong><a href="#NEur">NEur</a></strong>;
+for Macedonian Romani see also
+<strong><a href="#Espr">Espr</a></strong>
+and <strong><a href="#EECA">EECA_L</a></strong>;
+for Gagauz (<em>Cyr</em>) and Moldovan (<em>Cyr</em>) see also
+<strong><a href="#EECA">EECA</a></strong>.</p>
+
+<h5 id="NEur"><strong>NEur<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Northern European.</h5>
+<p>The <strong>NEur</strong> codesets support in particular Latin-script and
+Cyrillic-script languages spoken north of the
+line Paris–Berlin–Warsaw–Kyiv–Moscow, including
+Livonian, Finnish Romani,
+Skolt Sami, Kildin Sami, Nenets, and Komi,
+plus Croatian, Italian, Portuguese, and Spanish (except ª, º):
+<br><img class="sample" src="img/NEur_all.png" alt="[Sample img/NEur_all.png]"><br>
+<strong>NEur_L</strong> supports also almost all Latin-script languages
+of Europe and Western Asia (except Asturian, Laz, Maltese, and Welsh),
+all Slavic Cyrillic-script languages,
+and some Cyrillic-script languages of Central Asia, e.g.,
+Kazakh, Kyrgyz, Mari, Mongolian, Selkup, Tatar, Turkmen, and Uzbek:
+<br><img class="sample" src="img/NEur_L.png" alt="[Sample img/NEur_L.png]"><br>
+<strong>NEur_{M,C,P,L}</strong> covers
+ISO-8859-13 and CP1257;
+<strong>NEur_L</strong> covers also ISO-8859-1/2/5/9/15/16 and CP1250/1251/1252/1254/1270;
+<strong>NEur_C</strong> covers also KOI8 (Rus/Ukr).
+
+For accented Danish, dotted Irish, Old English, and Old Norse see <strong><a href="#NWEu">NWEu</a></strong>;
+for Maltese, Welsh, the Dutch “Ĳ/ĳ” ligature, the Catalan “Ŀ/ŀ”, the German capital “ẞ”, and the Irish “⁊” sign see <strong><a href="#WEur">WEur</a></strong> and <strong><a href="#NWEu">NWEu</a></strong>.</p>
+
+<h5 id="EECA"><strong>EECA<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Eastern European and North/Central Asian.</h5>
+<p>The <strong>EECA</strong> codesets support almost all Latin-script and
+Cyrillic-script languages spoken in Europe and North/Central Asia
+east of the line
+Murmansk–St. Petersburg–Minsk–Bucharest–Sofia–Ankara
+(except Kildin Sami, Abkhaz, Enets, Laz (<em>Lat</em>), and Orok), plus
+Danish, Dutch, German, Spanish (except ª, º), and Swedish:
+<br><img class="sample" src="img/EECA_all.png" alt="[Sample img/EECA_all.png]"><br>
+<strong>EECA_L</strong> supports also
+Enets, Orok,
+all Cyrillic-script languages of Europe except Kildin Sami
+and most Latin-script
+languages of Europe (except Asturian, Latvian,
+Livonian, Maltese, Finnish Romani, Sami, and Welsh):
+<br><img class="sample" src="img/EECA_L.png" alt="[Sample img/EECA_L.png]"><br>
+<strong>EECA_{M,C,P,L}</strong> covers
+PARATYPE-PT154;
+<strong>EECA_L</strong> covers also ISO-8859-1/2/5/9/15/16 and CP1250/1251/1252/1254;
+<strong>EECA_C</strong> covers also KOI8 (Rus/Ukr).
+
+For Latvian, Livonian, Lithuanian, and Sami
+see <strong><a href="#NEur">NEur</a></strong>;
+for Abkhaz and Laz see <strong><a href="#Geor">Geor</a></strong>.</p>
+
+
+<h4 id="512nec">Near East, Caucasus:</h4>
+
+<h5 id="Hebr"><strong>Hebr<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Hebrew.</h5>
+<p>The <strong>Hebr</strong> codesets support (unpointed) Hebrew, Yiddish,
+most Latin-script languages of Europe and Western Asia (except Asturian, Azeri, Faroese, Icelandic,
+Latvian, Livonian, Lithuanian, Maltese,
+Finnish Romani, Macedonian Romani, Sami, Welsh),
+as well as Bulgarian and Russian:
+<br><img class="sample" src="img/Hebr_all.png" alt="[Sample img/Hebr_all.png]"><br>
+<strong>Hebr_L</strong> supports also Hebrew vowel marks,
+Azeri (<em>Lat</em>), Faroese, Icelandic, Latvian, Lithuanian,
+and all Slavic Cyrillic-script languages:
+<br><img class="sample" src="img/Hebr_L.png" alt="[Sample img/Hebr_L.png]"><br>
+<strong>Hebr_{M,C,P,L}</strong> covers
+ISO-8859-2/8/9/16 and CP1250/1254;
+<strong>Hebr_L</strong> covers also ISO-8859-1/5/13/15 and CP1251/1252/1255/1257;
+<strong>Hebr_C</strong> covers also KOI8 (Rus).
+
+For romanized Arabic, monotonic Greek, Armenian, Georgian, and Esperanto
+see <strong><a href="#AAEGGH">AAEGGH</a></strong>.
+
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="Armn"><strong>Armn<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Armenian.</h5>
+<p>The <strong>Armn</strong> codesets support Armenian,
+Azeri (<em>Lat</em>), Belarusian, Bulgarian,
+Danish, Dutch, French, German, Italian,
+Norwegian, Ossetian, Portuguese, Romanian,
+Russian, Slovene, Spanish, Swedish,
+Turkish, and Ukrainian:
+<br><img class="sample" src="img/Armn_all.png" alt="[Sample img/Armn_all.png]"><br>
+<strong>Armn_L</strong> supports also Georgian, Laz (<em>Geo</em>), Mingrelian, Svan,
+monotonic Greek, 
+Croatian, Hungarian, and Moldovan (<em>Cyr</em>):
+<br><img class="sample" src="img/Armn_L.png" alt="[Sample img/Armn_L.png]"><br>
+<strong>Armn_{M,C,P,L}</strong> covers
+ARMSCII-8, ISO-8859-9, and CP1254;
+<strong>Armn_L</strong> covers also CP1253 and GEORGIAN-ACADEMY/-PS;
+<strong>Armn_C</strong> covers also KOI8 (Rus/Ukr).
+
+For Abkhaz, Kazakh (<em>Lat/Cyr</em>), Laz (<em>Lat</em>), Turkmen (<em>Lat/Cyr</em>), and Uzbek (<em>Lat/Cyr</em>) see <strong><a href="#Geor">Geor_L</a></strong>;
+for Azeri (<em>Cyr</em>) see <strong><a href="#EECA">EECA</a></strong>;
+for romanized Arabic, Hebrew, and Esperanto
+see <strong><a href="#AAEGGH">AAEGGH</a></strong>.</p>
+
+<h5 id="Geor"><strong>Geor<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Georgian.</h5>
+<p>The <strong>Geor</strong> codesets support Georgian, Laz (<em>Geo/Lat</em>), Mingrelian, Svan,
+Abkhaz, Azeri (<em>Lat</em>),
+Belarusian, Bulgarian,
+Danish, Dutch, French, German, Kazakh (<em>Lat/Cyr</em>),
+Mongolian, Ossetian, Russian, Spanish (except ¡, ¿, ª, º),
+Swedish, Tatar, Turkish, Turkmen (<em>Lat/Cyr</em>),
+Ukrainian, and Uzbek (<em>Lat/Cyr</em>):
+<br><img class="sample" src="img/Geor_all.png" alt="[Sample img/Geor_all.png]"><br>
+<strong>Geor_L</strong> supports also Armenian:
+<br><img class="sample" src="img/Geor_L.png" alt="[Sample img/Geor_L.png]"><br>
+<strong>Geor_{M,C,P,L}</strong> covers
+GEORGIAN-ACADEMY/-PS;
+<strong>Geor_L</strong> covers also ARMSCII-8;
+<strong>Geor_C</strong> covers also KOI8 (Rus/Ukr).
+
+For more European Latin-script languages and monotonic Greek see <strong><a href="#Armn">Armn_L</a></strong>;
+for Azeri (<em>Cyr</em>) see <strong><a href="#EECA">EECA</a></strong>;
+for romanized Arabic, Hebrew, and Esperanto
+see <strong><a href="#AAEGGH">AAEGGH</a></strong>.</p>
+
+<h5 id="AAEGGH"><strong>AAEGGH</strong>: LC 512 Arabic, Armenian, Esperanto, Georgian, Greek, Hebrew.</h5>
+<p>The <strong>AAEGGH</strong> codeset supports (unpointed) Hebrew, Yiddish,
+romanized Arabic, Armenian, Georgian, Laz (<em>Geo</em>), monotonic Greek,
+Esperanto,
+and some Latin-script languages of Europe, e.g., Danish,
+Dutch, French, German, Spanish, and Swedish:
+<br><img class="sample" src="img/AAEGGH.png" alt="[Sample img/AAEGGH.png]"><br>
+<strong>AAEGGH</strong> covers
+ISO-8859-7/8, CP1253,
+ARMSCII-8,
+and GEORGIAN-ACADEMY/-PS.
+
+For a larger choice of Arabic romanization schemes see <strong><a href="#NAfr">NAfr</a></strong>;
+for Hebrew and Yiddish see also <strong><a href="#Hebr">Hebr</a></strong>;
+for Armenian and Georgian see also <strong><a href="#Armn">Armn</a></strong> and <strong><a href="#Geor">Geor</a></strong>.
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+
+<h4 id="512afr">Africa:</h4>
+
+<h5 id="NAfr"><strong>NAfr<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 North African.</h5>
+<p>The <strong>NAfr</strong> codesets support
+Northern and Southern Berber languages (<em>Lat/Tfn</em>),
+romanized Arabic
+and Hassaniya Arabic,
+Dutch, French, German, Slovene, Spanish, and Swedish:
+<br><img class="sample" src="img/NAfr_all.png" alt="[Sample img/NAfr_all.png]"><br>
+<strong>NAfr_L</strong> supports further African languages, e.g.,
+Bambara,  Dazaga, Dinka, Fulfulde, Ga, Hausa,
+Kanuri, Luganda, Moore, Nuer, Serer, Tedaga, Twi, Wolof, and Yoruba,
+romanized Ancient Egyptian, and further European languages,
+e.g., Danish, Italian, Maltese, Portuguese,
+and Turkish:
+<br><img class="sample" src="img/NAfr_L.png" alt="[Sample img/NAfr_L.png]"><br>
+<strong>NAfr_L</strong> covers ISO-8859-9 and CP1254.
+
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="AfrP"><strong>AfrP<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 African P (“Phonetic”).</h5>
+<p>The <strong>AfrP_{M,C,P}</strong> codesets
+support almost all Latin-script languages spoken in Southern Africa
+and most Latin-script languages spoken
+in West Africa except Nigeria and Niger, Central Africa, and East Africa.
+They also support European languages,
+e.g., Danish, Dutch, French, German, Italian,
+Portuguese, Spanish, and Swedish,
+as well as romanized Japanese (Hepburn and Kunrei-shiki):
+<br><img class="sample" src="img/AfrP_all.png" alt="[Sample img/AfrP_all.png]"><br>
+<strong>AfrP_L</strong> supports further African languages
+as well as Chinese (Pinyin), Esperanto, and Slovene:
+<br><img class="sample" src="img/AfrP_L.png" alt="[Sample img/AfrP_L.png]"><br>
+
+For African languages that use letters with underdot (ạḅḍẹḥịṇọṣụẓ),
+underscore (ḇḏẖḵṯ), or undertilde (ḛḭṵ),
+certain consonant letters with caron (čňřž), acute (ŕś), cedilla (şţ),
+stroke (đɍŧ), or hook (ɦɽ),
+or vowel letters with macron plus grave or acute (ḕḗṑṓ)
+see also <strong><a href="#AfrU">AfrU</a></strong>.
+For Croatian, Czech, Hungarian, Icelandic, Polish, Romanian,
+Slovak, and Turkish see <strong><a href="#AfrU">AfrU_L</a></strong>.
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="AfrU"><strong>AfrU<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 African U (“Underdot”).</h5>
+<p>The <strong>AfrU</strong> codesets support
+almost all Latin-script languages spoken in Nigeria and Niger,
+most Latin-script languages spoken in West, Central, and East Africa,
+and some Latin-script languages spoken in Southern Africa.
+They also support some European languages,
+e.g., Danish, Dutch, French, German, Italian,
+Portuguese, Slovene, Spanish, and Swedish,
+as well as romanized Japanese (Hepburn and Kunrei-shiki):
+<br><img class="sample" src="img/AfrU_all.png" alt="[Sample img/AfrU_all.png]"><br>
+<strong>AfrU_L</strong> supports further African languages as well as Croatian,
+Czech, Hungarian, Icelandic, Polish, Romanian, and Slovak:
+<br><img class="sample" src="img/AfrU_L.png" alt="[Sample img/AfrU_L.png]"><br>
+<strong>AfrU_L</strong> covers ISO-8859-1/2/9/15/16 and CP1250/1252/1254.
+
+For African languages that use consonant letters with
+circumflex (ĉĥŵŷẑ), diaeresis (ẅ), or low circumflex (ḓḽṋṱ),
+“y” with grave or tilde (ỳỹ), “e” with cedilla (ȩ),
+“o” with stroke and acute (ǿ),
+or certain rare phonetic letters (ɑꞵƈɤƒɠɥɪɉʝɯɵƥᵽʃƭʉʊⱳꞷʒʔǀǁǂʘ)
+see also <strong><a href="#AfrP">AfrP</a></strong>.
+For Chinese (Pinyin), Esperanto, and 
+African languages that use vowel letters with dots (ȧėȯ)
+see <strong><a href="#AfrP">AfrP_L</a></strong>.
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+
+<h4 id="512ame">The Americas:</h4>
+
+<h5 id="NAme"><strong>NAme<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 North American.</h5>
+<p>The <strong>NAme</strong> codesets
+support most indigenous Latin-script languages
+of Canada and the USA (excluding British Columbia and Washington).
+They also support
+some languages of Mesoamerica and South America
+and some European languages,
+e.g., Croatian, Danish, Dutch, French, German, Icelandic, Italian,
+Polish, Portuguese, Slovene, Spanish, and Swedish:
+<br><img class="sample" src="img/NAme_all.png" alt="[Sample img/NAme_all.png]"><br>
+<strong>NAme_L</strong> supports
+also some languages of British Columbia and Washington,
+and some more European languages,
+e.g., Czech, Hungarian, Lithuanian, Romanian, and Slovak:
+<br><img class="sample" src="img/NAme_L.png" alt="[Sample img/NAme_L.png]"><br>
+<strong>NAme_{M,C,P,L}</strong> covers
+ISO-8859-1/15 and CP1252;
+<strong>NAme_L</strong> covers also ISO-8859-2/16 and CP1250.
+
+For Esperanto, Latvian, Maltese, and Turkish
+see <strong><a href="#BCWa">BCWa_L</a></strong>.
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="BCWa"><strong>BCWa<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 British Columbia and Washington.</h5>
+<p>The <strong>BCWa</strong> codesets support most indigenous Latin-script languages
+of British Columbia and Washington,
+that is, in particular,
+Haida, Ktunaxa, and
+Sahaptian, Salishan, Tsimshian, and Wakashan languages.
+They also support
+some other languages of the Americas
+and some European languages,
+e.g., Croatian, Danish, Dutch, French, German, Italian, Portuguese,
+Slovene, Spanish, and Swedish:
+<br><img class="sample" src="img/BCWa_all.png" alt="[Sample img/BCWa_all.png]"><br>
+<strong>BCWa_L</strong> supports some more languages of Canada and the USA
+and some more European languages,
+e.g., Hungarian, Latvian, Lithuanian, Maltese,
+Polish, Romanian, Turkish, and Esperanto:
+<br><img class="sample" src="img/BCWa_L.png" alt="[Sample img/BCWa_L.png]"><br>
+<strong>BCWa_L</strong> covers ISO-8859-3/9/13/16 and CP1254/1257.
+
+For Czech, Icelandic, and Slovak
+see <strong><a href="#NAme">NAme_L</a></strong>.
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="MSAm"><strong>MSAm<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Mesoamerican and South American.</h5>
+<p>The <strong>MSAm</strong> codesets support most indigenous
+languages of Mexico and Central and South America.
+They also support
+some languages of the Southern USA
+and some European languages,
+e.g., Croatian, Danish, Dutch, French, German, Icelandic, Italian,
+Portuguese, Slovene, Spanish, and Swedish:
+<br><img class="sample" src="img/MSAm_all.png" alt="[Sample img/MSAm_all.png]"><br>
+<strong>MSAm_L</strong> supports some more languages
+of the Southern USA, as well as
+Czech, Hungarian, Latvian, Lithuanian, Polish,
+Romanian, Slovak, Turkish, and Welsh:
+<br><img class="sample" src="img/MSAm_L.png" alt="[Sample img/MSAm_L.png]"><br>
+<strong>MSAm_{M,C,P,L}</strong> covers
+ISO-8859-1/15 and CP1252;
+<strong>MSAm_L</strong> covers also
+ISO-8859-2/9/13/16 and CP1250/1254/1257.
+
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+
+<h4 id="512seaao">Southeast and East Asia, Australia, Oceania:</h4>
+
+<h5 id="Thai"><strong>Thai<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Thai.</h5>
+<p>The <strong>Thai</strong> codesets support Thai,
+Mandarin Chinese (Pinyin romanization), Japanese (Hepburn and Kunrei-shiki romanization), Sanskrit (IAST romanization),
+and some European languages,
+e.g., Danish, Dutch, French, German, Italian, Portuguese, 
+Slovene, Spanish, and Swedish.
+<br><img class="sample" src="img/Thai_all.png" alt="[Sample img/Thai_all.png]"><br>
+<strong>Thai_L</strong> supports some more languages,
+e.g., Bulgarian, Croatian, Polish, Romanian, Russian,
+Turkish, and Ukrainian:
+<br><img class="sample" src="img/Thai_L.png" alt="[Sample img/Thai_L.png]"><br>
+<strong>Thai_{M,C,P,L}</strong> covers
+TIS 620-0 and ISO-8859-11;
+<strong>Thai_L</strong> covers also ISO-8859-9 and CP1254.
+
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="Viet"><strong>Viet<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Vietnamese.</h5>
+<p>The <strong>Viet</strong> codesets support Vietnamese
+and some European languages,
+e.g., Croatian, Czech, Danish, Dutch, French, German,
+Italian, Polish, Portuguese, Slovak, Slovene, Spanish, and Swedish:
+<br><img class="sample" src="img/Viet_all.png" alt="[Sample img/Viet_all.png]"><br>
+<strong>Viet_L</strong> supports also some minority languages of Vietnam,
+e.g., Rade and Jarai,
+and some more European languages,
+e.g., Belarusian, Bulgarian, Hungarian, Romanian, Russian, Turkish,
+and Ukrainian:
+<br><img class="sample" src="img/Viet_L.png" alt="[Sample img/Viet_L.png]"><br>
+<strong>Viet_{M,C,P,L}</strong> covers
+TCVN-5712 and VISCII-1.1;
+<strong>Viet_L</strong> covers also ISO-8859-9/16 and CP1254.</p>
+ 
+<h5 id="SEAO"><strong>SEAO<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Southeast and East Asian, Australian, Oceanian.</h5>
+<p>The <strong>SEAO</strong> codesets support Latin-script languages spoken in
+Southeast Asia (in particular Indonesia, Malaysia,
+Papua New Guinea, and the Philippines), Australia, and Oceania
+(except Dadibi and Worrorra),
+romanized Chinese languages such as
+Mandarin (Pinyin),
+Fuzhou (Bàng-uâ-cê),
+Haikou Hainanese (Bǽh-oe-tu),
+Hakka (Pha̍k-fa-sṳ),
+and Hokkien (Pe̍h-ōe-jī and Tâi-lô),
+romanized Japanese (Hepburn and Kunrei-shiki),
+and some European languages,
+e.g.,
+Danish, Dutch, French, German, Hungarian, Italian, Portuguese,
+Spanish, and Swedish:
+<br><img class="sample" src="img/SEAO_all.png" alt="[Sample img/SEAO_all.png]"><br>
+<strong>SEAO_L</strong> also supports Dadibi and Worrorra,
+as well as
+Croatian, Czech, Icelandic, Lithuanian,
+Polish, Romanian, Slovak, Slovene, and Turkish:
+<br><img class="sample" src="img/SEAO_L.png" alt="[Sample img/SEAO_L.png]"><br>
+<strong>SEAO_L</strong> covers ISO-8859-1/2/9/15/16 and CP1250/1252/1254.
+
+For Dadibi see also <strong><a href="#NWEu">NWEu</a></strong>
+and <strong><a href="#BCWa">BCWa</a></strong>.
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+
+<h4 id="512hist">Esperanto, historic languages, old orthographies:</h4>
+
+<h5 id="Espr"><strong>Espr<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 Esperanto.</h5>
+<p>The <strong>Espr_{M,C,P}</strong> codesets
+are similar to <strong><a href="#CEur">CEur_{M,C,P}</a></strong>,
+replacing monotonic Greek by Esperanto,
+Macedonian Romani, and non-European currency symbols:
+<br><img class="sample" src="img/Espr_all.png" alt="[Sample img/Espr_all.png]"><br>
+<strong>Espr_L</strong> supports Esperanto,
+almost all Latin-script languages
+of Europe, Western Asia, and Central Asia (except Asturian, Laz, Livonian,
+Maltese, Finnish Romani, Sami, and Welsh),
+monotonic Greek, 
+all Slavic Cyrillic-script languages,
+Gagauz (<em>Cyr</em>), Moldovan (<em>Cyr</em>),
+and some Cyrillic-script languages of Central Asia, e.g.,
+Kyrgyz, Mongolian, Tatar, and Turkmen:
+<br><img class="sample" src="img/Espr_L.png" alt="[Sample img/Espr_L.png]"><br>
+<strong>Espr_{M,C,P,L}</strong> covers
+ISO-8859-2/5/9/16 and CP1250/1251/1254;
+<strong>Espr_L</strong> covers also ISO-8859-1/13/15
+and CP1252/1253/1257;
+<strong>Espr_C</strong> covers also KOI8 (Rus/Ukr).
+
+For Asturian, Maltese, Sami, and Welsh see <strong><a href="#NWEu">NWEu_L</a></strong>;
+for Armenian, Georgian, Hebrew, and romanized Arabic
+see <strong><a href="#AAEGGH">AAEGGH</a></strong>,
+for romanized Chinese (Pinyin) and indigenous languages of Africa
+see <strong><a href="#AfrU">AfrU_L</a></strong>,
+for indigenous languages of North America
+see <strong><a href="#BCWa">BCWa_L</a></strong>.</p>
+
+<h5 id="NWEu"><strong>NWEu<a href="#MCPL">_{M,C,P,L}</a></strong>: LC 512 North-Western European.</h5>
+<p>The <strong>NWEu</strong> codesets support almost all Latin-script
+languages of Europe and Western Asia (except Asturian, Azeri, Laz, Livonian, Finnish Romani, Macedonian Romani, 
+and Skolt Sami),
+including accented Danish,
+Irish (dotted orthography),
+Old English,
+and Old Norse:
+<br><img class="sample" src="img/NWEu_all.png" alt="[Sample img/NWEu_all.png]"><br>
+<strong>NWEu_L</strong> also
+supports Asturian, Azeri (<em>Lat</em>), Esperanto, Skolt Sami, Bulgarian, Russian, and Ukrainian:
+<br><img class="sample" src="img/NWEu_L.png" alt="[Sample img/NWEu_L.png]"><br>
+<strong>NWEu_{M,C,P,L}</strong> covers
+ISO-8859-1/2/9/13/14/15/16 and CP1250/1252/1254/1257;
+<strong>NWEu_L</strong> covers also ISO-8859-3.</p>
+
+<h5 id="OldCyr"><strong>OldCyr</strong>: LC 512 Old Cyrillic.</h5>
+<p>The <strong>OldCyr</strong> codeset supports Old Church Slavonic, Russian (old
+orthography) and Romanian (Cyrillic orthography).
+It also supports all Slavic Cyrillic-script languages,
+monotonic Greek,
+and most European Latin-script languages (except
+Asturian, Faroese, Icelandic, Livonian, Maltese, Sami, and Welsh):
+<br><img class="sample" src="img/OldCyr.png" alt="[Sample img/OldCyr.png]"><br>
+<strong>OldCyr</strong> covers
+ISO-8859-2/5/9/13/16 and CP1250/1251/1253/1254/1257.
+
+Note that the Linux console does not handle
+<a href="#CaveatComb">combining characters</a> correctly.</p>
+
+<h5 id="PolyGk"><strong>PolyGk</strong>: LC 512 Polytonic Greek.</h5>
+<p>The <strong>PolyGk</strong> codeset supports polytonic Greek
+and some European Latin-script languages
+(Dutch, French, German, Irish, Italian, Spanish):
+<br><img class="sample" src="img/PolyGk.png" alt="[Sample img/PolyGk.png]"><br>
+<strong>PolyGk</strong> covers
+ISO-8859-7 and CP1253.</p>
+
+<h5 id="OtherHist">Other historic languages.</h5>
+<p>For romanized Ancient Egyptian see <strong><a href="#NAfr">NAfr</a></strong>;
+for romanized Sanskrit see <strong><a href="#Thai">Thai</a></strong>.</p>
+
+
+<h3 id="512braille">Combined Braille codesets</h3>
+
+<p>The <a href="#256gl">256-glyph codesets</a> listed above, such as
+<strong>437</strong> or <strong>WET</strong>,
+can be combined with the <strong><a href="#Brl">Brl</a></strong> codeset.
+The name of the resulting 512-glyph codeset
+is obtained by attaching <strong>_Brl</strong> to the name of the
+256-glyph codeset, for instance <strong>437_Brl</strong>:
+<br><img class="sample" src="img/437_Brl.png" alt="[Sample img/437_Brl.png]"><br>
+or <strong>WET_Brl</strong>:
+<br><img class="sample" src="img/WET_Brl.png" alt="[Sample img/WET_Brl.png]"><br></p>
+
+
+<h2 id="consolesetup">Compatibility codeset names for console-setup</h2>
+
+<p>Different Linux distributions provide different methods
+to configure the encoding, font, and keyboard mapping of the console.
+Some distributions use systemd's configuration file /etc/vconsole.conf;
+in this case the font must be fully specified in /etc/vconsole.conf.
+Others use the console-setup package and its
+configuration file /etc/default/console-setup.
+In the second case, the font may be fully specified,
+but console-setup is also able to guess a suitable font automatically
+based on the current encoding.
+This guessing, however, works only for
+fonts whose first name component is one of the 19 codesets
+known to console-setup,
+so for instance,
+it will work for a font named <em>Uni2</em>-Ttyp0Regular-18x9.psf.gz,
+but it will fail if the same font is named
+<em>CEur_L</em>-Ttyp0Regular-18x9.psf.gz.</p>
+
+<p>If "configure" detects that the Linux distribution uses
+console-setup (or if "configure" is run with the option
+"--conslinuxnaming=console-setup"), those UW ttyp0 codeset names for which
+there is a corresponding console-setup codeset name are replaced by the
+latter upon font installation,
+so that codeset guessing works for UW ttyp0:
+<br>
+<table>
+  <tr>
+    <th style="width: 3.5em">Size</th>
+    <th style="width: 7em">UW ttyp0 codeset name</th>
+    <th style="width: 8em">console-setup codeset name</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td rowspan="13">256 glyphs</td>
+    <td><strong><a href="#Arm">Arm</a></strong></td>
+    <td><strong>Armenian</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#EEA">EEA</a></strong></td>
+    <td><strong>CyrAsia</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#EEC">EEC</a></strong></td>
+    <td><strong>CyrSlav</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#Geo">Geo</a></strong></td>
+    <td><strong>Georgian</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#GkW">GkW</a></strong></td>
+    <td><strong>Greek</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#HbW">HbW</a></strong></td>
+    <td><strong>Hebrew</strong></td>
+    <td>In contrast to the <strong>Hebrew</strong> fonts that come with console-setup,
+        <strong><a href="#HbW">HbW</a></strong> does not cover the vowel marks and Yiddish digraphs of CP1255.
+        For Yiddish, use <strong><a href="#Hebr">Hebr_{M,C,P,L}</a></strong> instead;
+        for vowel marks use <strong><a href="#Hebr">Hebr_L</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#Koi">Koi</a></strong></td>
+    <td><strong>CyrKoi</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#Bal">Bal</a></strong></td>
+    <td><strong>Lat7</strong></td>
+    <td>In contrast to the <strong>Lat7</strong> fonts that come with console-setup,
+        <strong><a href="#Bal">Bal</a></strong> does not support Sami.
+        For Sami, use <strong><a href="#Sam">Sam</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#SEu">SEu</a></strong></td>
+    <td><strong>Lat38</strong></td>
+    <td>In contrast to the <strong>Lat38</strong> fonts that come with console-setup,
+        <strong><a href="#SEu">SEu</a></strong> does not cover ISO-8859-14 (dotted Irish and Welsh).
+        For ISO-8859-14, use <strong><a href="#NWE">NWE</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#Tha">Tha</a></strong></td>
+    <td><strong>Thai</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td><strong><a href="#WCE">WCE</a></strong></td>
+    <td><strong>Lat2</strong></td>
+    <td>In contrast to the <strong>Lat2</strong> fonts that come with console-setup,
+        <strong><a href="#WCE">WCE</a></strong> does not cover the spacing accents of ISO-8859-2.
+        For spacing accents, use <strong><a href="#CEu">CEu</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#WET">WET</a></strong></td>
+    <td><strong>Lat15</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td>–</td>
+    <td><strong>Lao</strong></td>
+    <td>The Lao script is not supported by UW ttyp0.</td>
+  </tr>
+  <tr>
+    <td rowspan="6">512 glyphs</td>
+    <td><strong><a href="#CEur">CEur_L</a></strong></td>
+    <td><strong>Uni2</strong></td>
+    <td>In contrast to the <strong>Uni2</strong> fonts that come with console-setup,
+        <strong><a href="#CEur">CEur_L</a></strong> does not cover Esperanto and dotted Irish.
+        For Esperanto, use <strong><a href="#Espr">Espr_{M,C,P,L}</a></strong>
+        or <strong><a href="#NWEu">NWEu_L</a></strong> instead;
+        for dotted Irish, use <strong><a href="#NWEu">NWEu_{M,C,P,L}</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#EECA">EECA_L</a></strong></td>
+    <td><strong>Uni3</strong></td>
+    <td>In contrast to the <strong>Uni3</strong> fonts that come with console-setup,
+        <strong><a href="#EECA">EECA_L</a></strong> does not cover Abkhaz,
+        Esperanto, Faroese, Icelandic, Latvian, and Maltese.
+        For Abkhaz, use <strong><a href="#Geor">Geor_{M,C,P,L}</a></strong> instead;
+        for Esperanto, use <strong><a href="#Espr">Espr_{M,C,P,L}</a></strong>
+        or <strong><a href="#NWEu">NWEu_L</a></strong> instead;
+        for Faroese, Icelandic, Latvian, and Maltese,
+        use <strong><a href="#WEur">WEur_{M,C,P,L}</a></strong> or
+        <strong><a href="#CEur">CEur_L</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#Hebr">Hebr_L</a></strong></td>
+    <td><strong>Uni1</strong></td>
+    <td>The <strong>Uni1</strong> fonts that come with console-setup
+        cover Latin, Slavic  Cyrillic, Hebrew, and rudimentary Arabic.
+        The Arabic script is not supported by UW ttyp0.
+        <strong><a href="#Hebr">Hebr_L</a></strong> also does not
+        cover Esperanto, Maltese, and Sami.
+        For Esperanto, use
+        <strong><a href="#Espr">Espr_{M,C,P,L}</a></strong>,
+        <strong><a href="#AAEGGH">AAEGGH</a></strong>,
+        or <strong><a href="#NWEu">NWEu_L</a></strong> instead;
+        for Maltese, use <strong><a href="#WEur">WEur_{M,C,P,L}</a></strong> or
+        <strong><a href="#CEur">CEur_L</a></strong> instead;
+        for Sami, use <strong><a href="#NEur">NEur_{M,C,P,L}</a></strong> or
+        <strong><a href="#WEur">WEur_L</a></strong> instead.</td>
+  </tr>
+  <tr>
+    <td><strong><a href="#Viet">Viet_L</a></strong></td>
+    <td><strong>Vietnamese</strong></td>
+    <td> </td>
+  </tr>
+  <tr>
+    <td>–</td>
+    <td><strong>Arabic</strong></td>
+    <td>The Arabic script is not supported by UW ttyp0.</td>
+  </tr>
+  <tr>
+    <td>–</td>
+    <td><strong>Ethiopian</strong></td>
+    <td>The Ethiopian script is not supported by UW ttyp0.</td>
+  </tr>
+</table></p>
+
+<p>For instance,
+a regular 9x18 font for the <em>Hebr_L</em> codeset
+would be installed using the name
+<em>Uni1</em>-Ttyp0Regular-18x9.psf.gz,
+rather than <em>Hebr_L</em>-Ttyp0Regular-18x9.psf.gz.</p>
+
+<p>Note that the character repertoires of the
+fonts that come with console-setup
+and the corresponding UW ttyp0 codesets 
+do not agree exactly – on the
+other hand, even within the console-setup package,
+fonts with the same codeset name often have
+different character repertoires
+(e.g., Uni2-<em>Fixed</em>14.psf.gz supports Welsh, whereas Uni2-<em>Terminus</em>14.psf.gz
+and Uni2-<em>VGA</em>14.psf.gz don't;
+Uni2-<em>Terminus</em>14.psf.gz supports double arrows, whereas Uni2-<em>Fixed</em>14.psf.gz
+and Uni2-<em>VGA</em>14.psf.gz don't;
+Uni2-<em>VGA</em>14.psf.gz supports double line graphics, whereas Uni2-<em>Fixed</em>14.psf.gz
+and Uni2-<em>Terminus</em>14.psf.gz don't).</p>
+
+
+<h2 id="machinereadable">Machine-readable codeset descriptions</h2>
+
+<p>The directory <a href="LinuxCodeSets"><code>doc/LinuxCodeSets</code></a>
+contains machine-readable descriptions of the UW ttyp0
+Linux console codesets.</p>
+
+<hr><p>
+Uwe Waldmann
+&lt;<a href="mailto:uwe@mpi-inf.mpg.de">uwe@mpi-inf.mpg.de</a>&gt;,
+<!-- !SH{date '+%Y-%m-%d'} -->2025-09-08<!-- /!SH -->.
+</p>
+
+</body>

@@ -1,0 +1,97 @@
+# The old syscons driver for the FreeBSD console accepts only a very
+# limited number of font sizes (width: 8, height: 8, 14, or 16).
+# Consequently, only two font sizes of UW ttyp0 can be used with
+# syscons, namely 14px and 16px (UW ttyp0 does not have a 8px size).
+# Note that the 14px fonts are originally 7 pixels wide; to be used with
+# syscons, they must be padded to 8 pixels. The result is not optimal,
+# in particular for the regular version (the bold version looks a bit
+# better).
+# 
+# Edit this file to specify which of the resulting size/style/encoding
+# combinations you want.
+#
+# **********************************************************************
+#
+# SIZES AND STYLES:
+#
+# The following combinations of font size and style are available:
+#
+#     Regular: 14  16
+#     Bold:    14b 16b
+#     Italic:      16i
+#
+# The default is the entire list of size/style combinations.
+# If you want only a subset, delete those that you don't want in the
+# following line:
+
+SIZES_CONS_FREEBSD_SC = 14 16 14b 16b 16i
+
+# **********************************************************************
+#
+# CHARACTER ENCODINGS:
+#
+# The following character encodings are available:
+#
+#     ISO 8859-1 (W Eur Latin):                 i01
+#     ISO 8859-2 (E Eur Latin):                 i02
+#     ISO 8859-3 (Maltese, Esperanto):          i03
+#     ISO 8859-5 (E Eur Cyrillic):              i05
+#     ISO 8859-7 (Greek):                       i07
+#     ISO 8859-8 (Hebrew):                      i08
+#     ISO 8859-9 (Turkish):                     i09
+#     ISO 8859-10 (Sami, Inuit):                i10
+#     ISO 8859-13 (Baltic):                     i13
+#     ISO 8859-14 (Celtic):                     i14
+#     ISO 8859-15 (W Eur Latin + Euro):         i15
+#     ISO 8859-16 (SE Eur Latin):               i16
+#     MS Windows CP1250 (E Eur Latin):          m50
+#     MS Windows CP1251 (E Eur Cyrillic):       m51
+#     MS Windows CP1253 (Greek):                m53
+#     MS Windows CP1255 (Hebrew):               m55
+#     MS Windows CP1257 (Baltic):               m57
+#     MS Windows CP1270 (Sami, Finnish Kalo):   m70
+#     KOI8-R (Russian):                         k8r
+#     KOI8-U (Ukrainian):                       k8u
+#     KOI8-T (Tajik):                           k8t
+#     ArmSCII-8 (Armenian):                     am8
+#     "PS" Encoding (Georgian):                 gep
+#     "Academy" Encoding (Georgian):            gea
+#     KZ-1048 (Kazakh):                         kaz
+#     Paratype PT154 (Asian Cyrillic):          154
+#     TIS 620-0 (Thai):                         ti0
+#     TIS 620-2 (Thai with MS Win Shaping):     ti2
+#     TCVN-5712 (Vietnamese):                   tcv
+#     VISCII-1.1 (Vietnamese):                  vis
+#     BPI-102 (Bambara, Ewondo, Fula):          102
+#     BPI-104 (Lingala, Sango, Wolof):          104
+#     CSX+ (Transliterated Sanskrit):           csp
+#     Original IBM PC Encoding CP437:           437
+#     IBM PC CP737 (DOSGreek):                  737
+#     IBM PC CP775 (DOSBaltRim):                775
+#     IBM PC CP850 (DOSLatin1):                 850
+#     IBM PC CP852 (DOSLatin2):                 852
+#     IBM PC CP855 (DOSCyrillic):               855
+#     IBM PC CP857 (DOSTurkish):                857
+#     IBM PC CP860 (DOSPortuguese):             860
+#     IBM PC CP861 (DOSIcelandic):              861
+#     IBM PC CP862 (DOSHebrew):                 862
+#     IBM PC CP863 (DOSCanadaF):                863
+#     IBM PC CP865 (DOSNordic):                 865
+#     IBM PC CP866 (DOSCyrillicRussian):        866
+#     IBM PC CP869 (DOSGreek2):                 869
+#     Mazovia Encoding (Polish):                maz
+#     Kamenicky Encoding (Czech, Slovak):       kam
+#     CWI-2 Encoding (Hungarian):               cwi
+#     MIK Encoding (Bulgarian)                  mik
+#     Adobe Symbol Font Encoding:               sym
+#
+# The ISO 8859-1 and ISO 8859-9 fonts contain also the additional
+# characters of MS Windows CP1252 and MS Windows CP1254 and can be
+# used for these codepages as well.
+#
+# The default is ISO 8859-1, ISO 8859-2, ISO 8859-7. and IBM 437. If
+# you want others, change the following line accordingly:
+
+ENCODINGS_CONS_FREEBSD_SC = i01 i02 i07 437
+
+# **********************************************************************

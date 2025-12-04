@@ -1,0 +1,156 @@
+#!/usr/bin/perl -w
+
+# Copyright (C) 2020-2025 Uwe Waldmann
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+#############################################################################
+# NOTE: We assume that all bitmaps in the bdf file are padded to the
+# full width and height of the font. This holds for all bdf files in
+# the ttyp0 distribution, but it does not hold for arbitrary bdf files.
+# If the bitmaps are not padded, the conversion will fail.
+#############################################################################
+
+if ($#ARGV != 0) {
+  die "usage: bdftosyscons bdffile\n"
+}
+
+$BDF = shift;
+
+open(BDF, $BDF) || die "bdftosyscons: cannot open bdffile \"$BDF\"\nbdftosyscons: stopped\n";
+
+$weight = "medium";
+$width = 0;
+$height = 0;
+$glyphdata = "";
+$charname = "";
+$lastenc = -1;
+
+while (<BDF>) {
+  if (/^FONTBOUNDINGBOX\s+(\d+)\s+(\d+)/) {
+    $width = $1;
+    $height = $2;
+  } elsif (/^WEIGHT_NAME\s+\"([^"]*)\"/) {
+    $weight = $1;
+    $weight =~ s/\s/_/g;
+  } elsif (/^ENDPROPERTIES\b/) {
+    if ($height != 16 && $height != 14 && $height != 8) {
+      die "bdftosyscons: font height must be 8, 14, or 16\nbdftosyscons: stopped\n";
+    }
+    if ($width > 8) {
+      die "bdftosyscons: font width larger than 8\nbdftosyscons: stopped\n";
+    } elsif ($width == 7) {
+      if ($weight =~ /^medium/i) {
+        $dir = "left";
+      } else {
+        $dir = "right";
+      }
+      warn "bdftosyscons: bdf font has width 7; padding glyphs on the $dir side\n";
+    } elsif ($width < 7) {
+      die "bdftosyscons: font width smaller than 7\nbdftosyscons: stopped\n";
+    }
+  } elsif (/^STARTCHAR\s+(.*\S)/) {
+    $charname = $1;
+  } elsif (/^ENCODING\s+(\d+)/) {
+    $currentenc = $1;
+    if ($currentenc <= $lastenc) {
+      if ($currentenc < 0) {
+        die "bdftosyscons: negative glyph number: currentenc\nbdftosyscons: stopped\n";
+      } else {
+        die "bdftosyscons: glyph numbers not ordered: $lastenc, $currentenc\nbdftosyscons: stopped\n";
+      }
+    } else {
+      $glyphdata .= ("\0" x ($height * ($currentenc - $lastenc - 1)));
+      $lastenc = $currentenc;
+    }
+  } elsif (/^BITMAP\b/ .. /^ENDCHAR\b/) {
+    if (/BITMAP/) {
+      $rowcnt = 0;
+    } elsif (/ENDCHAR/) {
+      if ($rowcnt < $height) {
+        die "bdftosyscons: too few pixel rows in character $currentenc ($charname)\nbdftosyscons: stopped\n";
+      } elsif ($rowcnt > $height) {
+        die "bdftosyscons: too many pixel rows in character $currentenc ($charname)\nbdftosyscons: stopped\n";
+      }
+    } else {
+      $rowcnt++;
+      chomp;
+      if (m/^([0-9A-Fa-f][0-9A-Fa-f])$/) {
+        if ($width == 7) {
+          ##################################################################
+          # The code to pad a 7px wide font to 8px relies on design
+          # decisions and glyph name conventions of UW ttyp0. For fonts
+          # from other sources, this may not be optimal.
+          ##################################################################
+          if ($weight =~ /^medium/i) {
+            s/(..)/sprintf "%02X", (hex($1)>>1)/e;
+            if ($charname =~ /^GGrey/) {
+              s/^[0-9A-Fa-f]([0-9A-Fa-f])$/$1$1/;
+            } elsif ($charname =~ /^D[A-Z].*Inv/) {
+              s/^0/8/;
+              s/^1/9/;
+              s/^2/A/;
+              s/^3/B/;
+              s/^4/C/;
+              s/^5/D/;
+              s/^6/E/;
+              s/^7/F/;
+            } elsif ($charname =~ /^G(Blk|Line)/) {
+              s/^4/C/;
+              s/^5/D/;
+              s/^6/E/;
+              s/^7/F/;
+            }
+          } else {
+	    if ($charname =~ /^GGrey/) {
+	      s/^([0-9A-Fa-f])[0-9A-Fa-f]$/$1$1/;
+	    } elsif ($charname =~ /^D[A-Z].*Inv/) {
+	      s/0$/1/;
+	      s/2$/3/;
+	      s/4$/5/;
+	      s/6$/7/;
+	      s/8$/9/;
+	      s/[Aa]$/B/;
+	      s/[Cc]$/D/;
+	      s/[Ee]$/F/;
+	    } elsif ($charname =~ /^G(Blk|Line)/) {
+	      s/2$/3/;
+	      s/6$/7/;
+	      s/[Aa]$/B/;
+	      s/[Ee]$/F/;
+	    }
+          }
+        }
+        $glyphdata .= chr(hex($_));
+      } else {
+        die "bdftosyscons: illegal input in glyph data: $_\nbdftosyscons: stopped\n";
+      }
+    }
+  }
+}
+
+if ($lastenc > 255) {
+  die "bdftosyscons: glyph number larger than 255: lastenc\nbdftosyscons: stopped\n";
+} else {
+  $glyphdata .= ("\0" x ($height * (255 - $lastenc)));
+}
+
+print "$glyphdata";

@@ -1,0 +1,208 @@
+#!/usr/bin/perl
+
+# Copyright (C) 2020-2025 Uwe Waldmann
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+#############################################################################
+# NOTE: We assume that all bitmaps in the bdf file are padded to the
+# full width and height of the font. This holds for all bdf files in
+# the ttyp0 distribution, but it does not hold for arbitrary bdf files.
+# If the bitmaps are not padded, the conversion will fail.
+#############################################################################
+
+if ($#ARGV != 1) {
+  die "usage: bdftobsdh [-openbsd|-netbsd] bdffile\n"
+}
+
+$BSDFLAVOR = shift;
+if (lc($BSDFLAVOR) ne "-openbsd" && lc($BSDFLAVOR) ne "-netbsd") {
+  die "usage: bdftobsdh [-openbsd|-netbsd] bdffile\n"
+}
+
+$BDF = shift;
+
+open(BDF, $BDF) || die "bdftobsdh: cannot open bdffile \"$BDF\"\nbdftobsdh: stopped\n";
+
+$foundry = "";
+$family = "unknown";
+$weight = "medium";
+$slant = "R";
+$width = 0;
+$height = 0;
+$comment = "";
+$csregistry = "";
+$csencoding = "";
+$glyphdata = "";
+$charname = "";
+$first = 1;
+
+while (<BDF>) {
+  if (/^FOUNDRY\s+\"([^"]*)\"\n/) {
+    $foundry = $1;
+    $foundry =~ s/\s/_/g;
+  } elsif (/^FAMILY_NAME\s+\"([^"]*)\"/) {
+    $family = $1;
+    $family =~ s/\s/_/g;
+  } elsif (/^WEIGHT_NAME\s+\"([^"]*)\"/) {
+    $weight = $1;
+    $weight =~ s/\s/_/g;
+  } elsif (/^SLANT\s+\"([^"]*)\"/) {
+    $slant = $1;
+    $slant =~ s/\s/_/g;
+  } elsif (/^FONTBOUNDINGBOX\s+(\d+)\s+(\d+)/) {
+    $width = $1;
+    $height = $2;
+  } elsif (/^COMMENT\b\s?(.*)\n/) {
+    $comment .= " * $1\n";
+  } elsif (/^CHARSET_REGISTRY\s+\"([^"]*)\"/) {
+    $csregistry = $1;
+  } elsif (/^CHARSET_ENCODING\s+\"([^"]*)\"/) {
+    $csencoding = $1;
+  } elsif (/^ENDPROPERTIES\b/) {
+    $stride = int(($width - 1) / 8) + 1;
+  } elsif (/^STARTCHAR\s+(.*\S)/) {
+    $charname = $1;
+  } elsif (/^ENCODING\s+(\d+)/) {
+    $currentenc = $1;
+    if ($first) {
+      $firstenc = $currentenc;
+      $lastenc = $currentenc;
+      $first = 0;
+    } else {
+      if ($currentenc <= $lastenc) {
+        die "bdftobsdh: glyph numbers not ordered: $lastenc, $currentenc\nbdftobsdh: stopped\n";
+      } else {
+        for ($i = $lastenc + 1 ; $i < $currentenc ; $i++) {
+          $glyphdata .= "\t/* chr$i */\n";
+          $glyphdata .= ("\t" . ("0x00, " x $stride) . "   /* " . ("." x $width) . " */\n") x $height;
+          $glyphdata .= "\n";
+        }
+        $lastenc = $currentenc;
+      }
+    }
+  } elsif (/^BITMAP\b/ .. /^ENDCHAR\b/) {
+    if (/BITMAP/) {
+      $glyphdata .= "\t/* chr" . ${currentenc} . " */\n";
+      $rowcnt = 0;
+    } elsif (/ENDCHAR/) {
+      $glyphdata .= "\n";
+      if ($rowcnt < $height) {
+        die "bdftobsdh: too few pixel rows in character $currentenc ($charname)\nbdftobsdh: stopped\n";
+      } elsif ($rowcnt > $height) {
+        die "bdftobsdh: too many pixel rows in character $currentenc ($charname)\nbdftobsdh: stopped\n";
+      }
+    } else {
+      $rowcnt++;
+      chomp;
+      $a = $_;
+      $a =~ s/([0-9A-Fa-f][0-9A-Fa-f])/0x$1, /g;
+      s/0/..../g;
+      s/1/...#/g;
+      s/2/..#./g;
+      s/3/..##/g;
+      s/4/.#../g;
+      s/5/.#.#/g;
+      s/6/.##./g;
+      s/7/.###/g;
+      s/8/#.../g;
+      s/9/#..#/g;
+      s/[aA]/#.#./g;
+      s/[bB]/#.##/g;
+      s/[cC]/##../g;
+      s/[dD]/##.#/g;
+      s/[eE]/###./g;
+      s/[fF]/####/g;
+      $_ = substr($_,0,$width);
+      $glyphdata .= "\t$a   /* $_ */\n";
+    }
+  }
+}
+
+$csregenc = uc("$csregistry-$csencoding");
+
+if ($csregenc eq "ISO8859-1") {
+  $bsdencoding = "WSDISPLAY_FONTENC_ISO";
+} elsif ($csregenc eq "ISO8859-2") {
+  $bsdencoding = "WSDISPLAY_FONTENC_ISO2";
+} elsif ($csregenc eq "ISO8859-7") {
+  $bsdencoding = "WSDISPLAY_FONTENC_ISO7";
+} elsif ($csregenc eq "IBM-CP437") {
+  $bsdencoding = "WSDISPLAY_FONTENC_IBM";
+} elsif ($csregenc =~ /^IBM-|^MAZOVIA-|^KAMENICKY-|^CWI-|^MIK-/) {
+  $bsdencoding = "WSDISPLAY_FONTENC_IBM";
+  warn "bdftobsdh: unknown encoding $csregistry-$csencoding, using IBM-CP437\n";
+} else {
+  $bsdencoding = "WSDISPLAY_FONTENC_ISO";
+  warn "bdftobsdh: unknown encoding $csregistry-$csencoding, using ISO8859-1\n";
+}
+
+$structname = "";
+$typefacename = "";
+if ($foundry ne "") {
+  $structname .= "$foundry";
+  $typefacename .= "$foundry ";
+}
+$structname .= "${family}_";
+$typefacename .= "$family ";
+if ($weight !~ /^medium$/i) {
+  $structname .= "${weight}_";
+  $typefacename .= "$weight ";
+}
+if ($slant =~ /^i$/i) {
+  $structname .= "Italic_";
+  $typefacename .= "Italic ";
+}
+$structname .= "${width}x${height}";
+$typefacename .= "${width}x${height}";
+$structname =~ s/[^A-Za-z0-9_]/_/g;
+
+$numchars = $lastenc - $firstenc + 1;
+
+print "/*\n$comment */\n\n";
+
+print "extern u_char ${structname}_data[];\n\n";
+
+print "struct wsdisplay_font $structname = {
+\t\"$typefacename\", /* typeface name */\n";
+
+if (lc($BSDFLAVOR) eq "-openbsd") {
+  print "\t0, /* index */\n";
+}
+
+print "\t$firstenc, /* firstchar */
+\t$numchars, /* numchars */
+\t$bsdencoding, /* encoding */
+\t$width, /* width */
+\t$height, /* height */
+\t$stride, /* stride */
+\tWSDISPLAY_FONTORDER_L2R, /* bit order */
+\tWSDISPLAY_FONTORDER_L2R, /* byte order */\n";
+
+if (lc($BSDFLAVOR) eq "-openbsd") {
+  print "\tNULL, /* cookie */\n";
+}
+
+print "\t${structname}_data /* data */
+};
+
+static u_char ${structname}_data[] = {
+$glyphdata};\n";

@@ -1,0 +1,833 @@
+.TH BDFMANGLE "1" "August 2025" "Uwe Waldmann" "User Commands"
+.SH NAME
+bdfmangle \- transform a bdf font file into another bdf font file
+.SH SYNOPSIS
+.B bdfmangle
+[\fIOPTION...\fR] \fIBDFFILE\fR \fIMGLFILE\fR...
+.SH DESCRIPTION
+\fIBdfmangle\fR
+is a tool to select, rename, reorder, or manipulate glyphs in
+a bdf font file.
+It reads a bdf font file
+(or a concatenation of bdf font files
+via
+\fBcat\fR \fIBDFFILE1\fR \fIBDFFILE2\fR ... | \fBbdfmangle\fR - \fIMGLFILE\fR...),
+manipulates the preamble and the glyphs of the
+font file as specified in \fIMGLFILEs\fR
+and prints the result to standard output.
+.SH OPTIONS
+.TP
+\fB-h\fR, \fB--help\fR
+Output a usage message and exit.
+.TP
+\fB-c\fR, \fB--compatibility-mode\fR
+Start \fIbdfmangle\fR in compatibility mode (see \fILIMITATIONS\fR below).
+.SH "MGL COMMAND SYNOPSIS"
+When \fIbdfmangle\fR reads the bdf file(s),
+it stores the first preamble that it encounters
+(discarding any further preambles)
+and the glyphs (bitmaps) of the bdf file(s).
+Every glyph is stored independently under its name
+(the string following the \fISTARTCHAR\fR keyword)
+and under its encoding
+(the number following the \fIENCODING\fR keyword).
+Formally, a glyph
+.RS
+.PP
+STARTCHAR \fIglyphname\fR
+.br
+ENCODING \fInumber\fR
+.br
+\fIglyphdata\fR
+.br
+ENDCHAR
+.RE
+.PP
+is turned into
+.RS
+.PP
+nameindex[\fIglyphname\fR] := \fIglyphdata\fR;
+.br
+encodingindex[\fInumber\fR] := \fIglyphdata\fR;
+.RE
+.PP
+If several glyphs have the same name or the same encoding,
+the last one overwrites the earlier ones.
+
+The preamble and glyphs are then processed according to
+the commands in the mgl file(s).
+Commands are separated by newlines.
+In contrast to bdf files,
+numbers in mgl files can be specified
+either decimally, or octally (with a \fI0\fR prefix),
+or hexadecimally (with a \fI0x\fR prefix).
+
+.SS
+Preamble commands
+.TP
+\fBFONT\fR \fIfontnamesuffix\fR
+Replaces the trailing part of the font name in the preamble
+by \fIfontnamesuffix\fR.
+The length of the the replaced part is determined by the
+number of hyphens in \fIfontnamesuffix\fR
+(the total number of hyphens is left unchanged).
+.TP
+\fBDEFAULT_CHAR\fR \fInumber\fR
+Replaces the \fIDEFAULT_CHAR\fR declaration in the preamble.
+.TP
+\fBCHARSET_REGISTRY\fR \fIstring\fR
+Replaces the \fICHARSET_REGISTRY\fR declaration in the preamble.
+.TP
+\fBCHARSET_ENCODING\fR \fIstring\fR
+Replaces the \fICHARSET_ENCODING\fR declaration in the preamble.
+.SS
+Output commands
+.TP
+\fBPUT\fR \fIglyphname\fR [\fInumber\fR]
+Prints the glyph stored at \fIglyphname\fR with
+the encoding \fInumber\fR.
+If no number is specified,
+the encoding of the last glyph printed is incremented by 1.
+.TP
+\fBPUTAS\fR \fIglyphname\fR \fInewglyphname\fR [\fInumber\fR]
+Prints the glyph stored at \fIglyphname\fR
+with the new name \fInewglyphname\fR
+and the encoding \fInumber\fR.
+If no number is specified,
+the encoding of the last glyph printed is incremented by 1.
+.TP
+\fBPUTENC\fR \fIoldencoding\fR [\fInumber\fR] 
+Prints the glyph stored at \fIoldencoding\fR
+with the encoding \fInumber\fR.
+If no number is specified,
+the encoding of the last glyph printed is incremented by 1.
+.TP
+\fBPUTENCAS\fR \fIoldencoding\fR \fInewglyphname\fR [\fInumber\fR]
+Prints the glyph stored at \fIoldencoding\fR
+with the new name \fInewglyphname\fR
+and the encoding \fInumber\fR.
+If no number is specified,
+the encoding of the last glyph printed is incremented by 1.
+.SS
+Error handling commands
+.TP
+\fBNODEFAULT\fR \ \ \ \ 
+Specifies that \fIbdfmangle\fR is aborted if unassigned glyph names
+or encodings are used in an output command.
+.TP
+\fBDEFAULT\fR \fIglyphname\fR
+Specifies that the glyph currently stored with the name \fIglyphname\fR
+is taken as a replacement
+whenever an unassigned glyph name
+or encoding is used in an output command.
+.TP
+\fBDEFAULTENC\fR \fInumber\fR
+Specifies that the glyph currently stored with the encoding \fInumber\fR
+is taken as a replacement
+whenever an unassigned glyph name
+or encoding is used in an output command.
+.TP
+\fBDEFAULTOMIT\fR
+Specifies that output commands using unassigned glyph names
+or encodings are ignored.
+.SS
+Copy commands
+.TP
+\fBCOPYTO\fR \fIglyphname\fR \fInewglyphname\fR
+Copies the glyph stored at \fIglyphname\fR
+to \fInewglyphname\fR,
+i.e.,
+
+nameindex[\fInewglyphname\fR] := nameindex[\fIglyphname\fR];
+
+The glyph is afterwards accessible both under its old
+and its new name.
+If some other glyph was previously stored at \fInewglyphname\fR,
+it is no longer accessible by its name
+(but it may still be accessible by its encoding).
+.TP
+\fBCOPYTOENC\fR \fIglyphname\fR \fInewnumber\fR
+Copies the glyph stored at \fIglyphname\fR
+to the encoding \fInewnumber\fR,
+i.e.,
+
+encodingindex[\fInewnumber\fR] := nameindex[\fIglyphname\fR];
+
+The glyph is afterwards accessible both under its old name
+and its new encoding.
+If some other glyph was previously stored at the encoding \fInewnumber\fR,
+it is no longer accessible by its encoding
+(but it may still be accessible by its name).
+.TP
+\fBCOPYENCTO\fR \fInumber\fR \fInewglyphname\fR
+Copies the glyph stored at the encoding \fInumber\fR
+to \fInewglyphname\fR,
+i.e.,
+
+nameindex[\fInewglyphname\fR] := encodingindex[\fInumber\fR];
+
+The glyph is afterwards accessible both under the encoding \fInumber\fR
+and its new name.
+If some other glyph was previously stored at \fInewglyphname\fR,
+it is no longer accessible by its name
+(but it may still be accessible by its encoding).
+.TP
+\fBCOPYENCTOENC\fR \fInumber\fR \fInewnumber\fR
+Copies the glyph stored at the encoding \fInumber\fR
+to the encoding \fInewnumber\fR,
+i.e.,
+
+encodingindex[\fInewnumber\fR] := encodingindex[\fInumber\fR];
+
+The glyph is afterwards accessible both under its old
+and its new encoding.
+If some other glyph was previously stored at the encoding \fInewnumber\fR,
+it is no longer accessible by its encoding
+(but it may still be accessible by its name).
+.TP
+\fBCOPYTOENCPN\fR \fIglyphname\fR \fInewnumber\fR
+.TP
+\fBCOPYENCTOENCPN\fR \fInumber\fR \fInewnumber\fR
+These two commands are similar to \fBCOPYTOENC\fR and \fBCOPYENCTOENC\fR.
+The only difference is that if some glyph was previously
+stored at the encoding \fInewnumber\fR, then the name that was
+previously associated with this glyph is preserved
+and not replaced by the name associated with the name 
+\fIglyphname\fR or the encoding \fInumber\fR, respectively.
+For instance, assume that there is a glyph stored at encoding 0x0041 with the
+name "LtCapA" and a glyph stored at encoding 0x0410
+with the name "CyCapA".
+Then "COPYENCTOENC 0x0041 0x0410"
+overwrites both the glyph stored at 0x0410 and its name,
+therefore "PUT 0x0410" would print a glyph with the name ""LtCapA".
+On the other hand,
+"COPYENCTOENCPN 0x0041 0x0410" overwrites the glyph previously
+stored at 0x0410 but preserves its old name "CyCapA",
+therefore "PUT 0x0410" would print a glyph with the name ""CyCapA".
+.TP
+\fBUNDEF\fR \fIglyphname\fR
+Deletes the glyph stored at \fIglyphname\fR,
+i.e.,
+
+nameindex[\fIglyphname\fR] := undef;
+
+.TP
+\fBUNDEFENC\fR \fInumber\fR
+Deletes the glyph stored at the encoding \fInumber\fR,
+i.e.,
+
+encodingindex[\fInumber\fR] := undef;
+
+.SS
+Glyph manipulation commands
+.TP
+\fBMERGE\fR \fIglyphname1\fR \fIglyphname2\fR
+Sets every pixel in the glyph data of \fIglyphname2\fR
+to black if the corresponding pixel of the glyph data of \fIglyphname1\fR
+is black.
+Both \fIglyphname1\fR and \fIglyphname2\fR must be defined.
+
+\fBMERGE\fR computes a logical "or" of the glyphs.
+.TP
+\fBINTERSECT\fR \fIglyphname1\fR \fIglyphname2\fR
+Sets every pixel in the glyph data of \fIglyphname2\fR
+to white if the corresponding pixel of the glyph data of \fIglyphname1\fR
+is white.
+Both \fIglyphname1\fR and \fIglyphname2\fR must be defined.
+
+\fBINTERSECT\fR computes a logical "and" of the glyphs.
+If other boolean operations are needed,
+they can be obtained by combining \fBMERGE\fR, \fBINTERSECT\fR,
+and \fBINVERT\fR commands appropriately.
+.TP
+\fBOVERWRITE\fR \fIglyphname1\fR \fIglyphname2\fR
+Replaces every pixel row in the glyph data of \fIglyphname2\fR
+by the corresponding pixel row of the glyph data of \fIglyphname1\fR,
+provided that the latter row contains at least one black pixel.
+(This is equivalent to "\fBINVLINEMASK\fR \fIglyphname1\fR \fIglyphname2\fR"
+followed by "\fBMERGE\fR \fIglyphname1\fR \fIglyphname2\fR".)
+Both \fIglyphname1\fR and \fIglyphname2\fR must be defined.
+.TP
+\fBLINEMASK\fR \fIglyphname1\fR \fIglyphname2\fR
+Replaces every pixel row in the glyph data of \fIglyphname2\fR
+by an empty pixel row,
+provided that the corresponding pixel row in the glyph data of \fIglyphname1\fR
+is empty (that is, contains no black pixel).
+Both \fIglyphname1\fR and \fIglyphname2\fR must be defined.
+.TP
+\fBINVLINEMASK\fR \fIglyphname1\fR \fIglyphname2\fR
+Replaces every pixel row in the glyph data of \fIglyphname2\fR
+by an empty pixel row,
+provided that the corresponding pixel row in the glyph data of \fIglyphname1\fR
+contains at least one black pixel.
+Both \fIglyphname1\fR and \fIglyphname2\fR must be defined.
+.TP
+\fBSHIFTUP\fR \fInumber\fR \fIglyphname\fR
+Shifts the pixels in the glyph data of \fIglyphname\fR
+upward by \fInumber\fR rows.
+Pixels in the highest \fInumber\fR rows are discarded.
+.TP
+\fBSHIFTDOWN\fR \fInumber\fR \fIglyphname\fR
+Shifts the pixels in the glyph data of \fIglyphname\fR
+downward by \fInumber\fR rows.
+Pixels in the lowest \fInumber\fR rows are discarded.
+.TP
+\fBSHIFTLEFT\fR \fInumber\fR \fIglyphname\fR
+Shifts the pixels in the glyph data of \fIglyphname\fR
+to the left by \fInumber\fR columns.
+Pixels in the leftmost \fInumber\fR columns are discarded.
+.TP
+\fBSHIFTRIGHT\fR \fInumber\fR \fIglyphname\fR
+Shifts the pixels in the glyph data of \fIglyphname\fR
+to the right by \fInumber\fR columns.
+Pixels in the rightmost \fInumber\fR columns are discarded.
+.TP
+\fBSHIFTUPMAX\fR \fInumber\fR \fIglyphname\fR
+.TP
+\fBSHIFTDOWNMAX\fR \fInumber\fR \fIglyphname\fR
+.TP
+\fBSHIFTLEFTMAX\fR \fInumber\fR \fIglyphname\fR
+.TP
+\fBSHIFTRIGHTMAX\fR \fInumber\fR \fIglyphname\fR
+These four commands are similar to \fBSHIFTUP\fR,
+\fBSHIFTDOWN\fR, \fBSHIFTLEFT\fR, and \fBSHIFTRIGHT\fR,
+except that the pixels in the glyph data are shifted at most
+so far to the left, right, top, or bottom that they touch
+the margin of the bounding box.
+For instance, if a glyph has three white columns at the left margin,
+then "\fBSHIFTLEFTMAX\fR 2 \fIglyphname\fR"
+behaves like
+"\fBSHIFTLEFT\fR 2 \fIglyphname\fR",
+but
+"\fBSHIFTLEFTMAX\fR 5 \fIglyphname\fR"
+behaves like
+"\fBSHIFTLEFT\fR 3 \fIglyphname\fR", so that
+no black pixel is shifted out of the
+bounding box.
+.TP
+\fBVALIGN\fR \fIparam\fR \fIglyphname1\fR \fIglyphname2\fR
+Shifts the pixels in the glyph data of \fIglyphname2\fR
+up or down such that the top edges (if \fIparam\fR = T),
+vertical centers (if \fIparam\fR = C),
+or bottom edges (if \fIparam\fR = B) 
+of \fIglyphname1\fR and \fIglyphname2\fR are aligned.
+It is also possible to specify different alignment points
+for \fIglyphname1\fR and \fIglyphname2\fR
+by setting \fIparam\fR = TC/TB/CT/CB/BT/BC.
+For instance if \fIparam\fR = TB
+then the top edge of \fIglyphname1\fR and the bottom edge of \fIglyphname2\fR
+are aligned
+(that is, \fIglyphname2\fR is shifted vertically
+until it is directly above
+\fIglyphname1\fR),
+and if \fIparam\fR = CT
+then the center of \fIglyphname1\fR and the top edge of \fIglyphname2\fR
+are aligned.
+
+\fBVALIGN\fR behaves like \fBSHIFTUPMAX\fR and \fBSHIFTDOWNMAX\fR
+in that
+no black pixel of \fIglyphname2\fR is shifted out of the
+bounding box.
+
+Since the center of a glyph may be on a pixel row or between two
+pixel rows, aligning with respect to the center is not always possible
+exactly. Any fractional shift distance is rounded down towards zero
+(e.g., if centering a glyph with respect to another one would
+require to shift it by 2.5 pixels (up or down),
+it is shifted by 2 pixels instead).
+
+Example: Suppose that rows are numbered top-down starting at 1,
+that the topmost black pixel of tmp1 is in row 2
+and the bottommost black pixel is in row 5,
+which means that the vertical center is between rows 3 and 4,
+and that the topmost black pixel of tmp2 is in row 7
+and the bottommost black pixel is in row 13,
+which means that the vertical center is at row 10.
+To align the bottom edge of tmp2 with the bottom edge of tmp1,
+we'd need to shift tmp2 8 rows up, but then the
+black pixels in rows 7 and 8
+would be shifted out of the bounding box.
+Consequently,
+"VALIGN B tmp1 tmp2" shifts the pixels of tmp2 only 6 rows up.
+
+"VALIGN BT tmp1 tmp2" shifts the pixels of tmp2 1 row up;
+the bottom edge of tmp1 (below row 5)
+is now aligned with the top edge of tmp2 (above row 6).
+
+Aligning the bottom edge of tmp1 and the center of tmp2 would mean
+to shift the pixels of tmp2 4.5 rows up;
+4.5 is rounded down to 4;
+therefore
+"VALIGN BC tmp1 tmp2" shifts the pixels of tmp2 4 rows up.
+.TP
+\fBHALIGN\fR \fIparam\fR \fIglyphname1\fR \fIglyphname2\fR
+Shifts the pixels in the glyph data of \fIglyphname2\fR
+left or right such that the left edges (if \fIparam\fR = L),
+horizontal centers (if \fIparam\fR = C),
+or right edges (if \fIparam\fR = R) 
+of \fIglyphname1\fR and \fIglyphname2\fR are aligned.
+It is also possible to specify different alignment points
+for \fIglyphname1\fR and \fIglyphname2\fR
+by setting \fIparam\fR = LC/LR/CL/CR/RL/RC.
+For instance if \fIparam\fR = LR
+then the left edge of \fIglyphname1\fR and the right edge of \fIglyphname2\fR
+are aligned
+(that is, \fIglyphname2\fR is shifted horizontally
+until it is directly feft of
+\fIglyphname1\fR),
+and if \fIparam\fR = CL
+then the center of \fIglyphname1\fR and the left edge of \fIglyphname2\fR
+are aligned.
+
+\fBHALIGN\fR behaves like \fBSHIFTLEFTMAX\fR and \fBSHIFTRIGHTMAX\fR
+in that
+no black pixel of \fIglyphname2\fR is shifted out of the
+bounding box.
+
+Since the center of a glyph may be on a pixel column or between two
+pixel columns, aligning with respect to the center is not always possible
+exactly. Any fractional shift distance is rounded down towards zero
+(e.g., if centering a glyph with respect to another one would
+require to shift it by 2.5 pixels (left or right),
+it is shifted by 2 pixels instead.
+.TP
+\fBVFLIP\fR \fIglyphname\fR
+Flips the glyph of \fIglyphname\fR vertically
+(top/bottom).
+White columns on the left and/or right hand side
+and
+white rows at the top and/or bottom are left unchanged.
+.TP
+\fBHFLIP\fR \fIglyphname\fR
+Flips the glyph of \fIglyphname\fR horizontally
+(left/right).
+White columns on the left and/or right hand side
+and
+white rows at the top and/or bottom are left unchanged.
+.TP
+\fBROTATE\fR \fIglyphname\fR
+Rotates the glyph of \fIglyphname\fR by 180\(de.
+(This is equivalent to "\fBHFLIP\fR \fIglyphname\fR"
+followed by "\fBVFLIP\fR \fIglyphname\fR".)
+White columns on the left and/or right hand side
+and
+white rows at the top and/or bottom are left unchanged.
+.TP
+\fBHFLIPBBX\fR \fIglyphname\fR
+.TP
+\fBVFLIPBBX\fR \fIglyphname\fR
+.TP
+\fBROTATEBBX\fR \fIglyphname\fR
+These operations are similar to \fBHFLIP\fR, \fBVFLIP\fR, and
+\fBROTATE\fR, except that the entire bounding box, including
+white columns and rows at the margin, is flipped or rotated.
+For instance, if a glyph has three white columns at the left margin
+and one white column at the right margin,
+then \fBHFLIP\fR and \fBROTATE\fR will not change that,
+whereas \fBHFLIPBBX\fR and \fBROTATEBBX\fR yield
+a glyph with one white column at the left margin and
+three white columns at the right margin.
+.TP
+\fBSLANT\fR \fInumber1\fR [\fInumber2\fR] \fIglyphname\fR
+Slants the glyph of \fIglyphname\fR to the right side.
+
+The argument \fInumber1\fR determines how much the glyph is slanted:
+vertical lines in the original glyph are turned into lines
+with a slant of (\fInumber1\fR/10) in the modified glyph.
+In other words, \fInumber1\fR/10 is the cotangent of the slanting
+angle: higher values of \fInumber1\fR mean the slanting angle
+is smaller, that is, that former vertical lines are steeper.
+Typical values of \fInumber1\fR range from
+25 (corresponding to a 22\(de angle)
+to
+55 (corresponding to a 10\(de angle).
+If \fInumber1\fR is negative, the glyph is slanted to the left side.
+
+The optional argument \fInumber2\fR determines the number of the
+lowest pixel row that is neither shifted to the left nor to the  right,
+that is, the base line of the slant.
+Pixel rows are counted from top to bottom
+and the topmost pixel row has number 1.
+If \fInumber2\fR is omitted, it is implicitly set to
+ceiling(\fIheight\fR/2 + \fInumber1\fR/20), where \fIheight\fR
+is the number of pixel rows in the bitmap;
+this results in a slanting that is symmetric with respect to the
+bounding box.
+.TP
+\fBINVERT\fR \fIglyphname\fR
+Inverts all pixels in the glyph of \fIglyphname\fR.
+.SS
+Bounding box manipulation commands
+.TP
+\fBUNPAD\fR \fIglyphname\fR
+Removes empty rows at the top and bottom of the glyph
+and empty columns at the left and right margin of the glyph
+and adapts the glyph's bounding box accordingly.
+.TP
+\fBPAD\fR \fIglyphname\fR
+If the bounding box of the glyph is smaller than the FONTBOUNDINGBOX
+of the font,
+adds empty rows at the top and bottom of the glyph
+and empty columns at the left and right margin of the glyph
+until the glyph's bounding box agrees with the FONTBOUNDINGBOX.
+.SS
+Conditional commands
+.TP
+\fBIFDEF\fR \fIglyphname\fR \fIcmd\fR
+If there is a glyph stored at
+\fIglyphname\fR, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+.TP
+\fBIFUNDEF\fR \fIglyphname\fR \fIcmd\fR
+If there is no glyph stored at
+\fIglyphname\fR, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+.TP
+\fBIFDEFENC\fR \fInumber\fR \fIcmd\fR
+If there is a glyph stored at
+the encoding \fInumber\fR, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+.TP
+\fBIFUNDEFENC\fR \fInumber\fR \fIcmd\fR
+If there is no glyph stored at
+the encoding \fInumber\fR, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+.TP
+\fBIFFONT\fR \fIstring\fR \fIcmd\fR
+If the \fIFONT\fR declaration in the preamble contains
+\fIstring\fR as a substring, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+The string \fIstring\fR may not contain whitespace.
+.TP
+\fBIFNOTFONT\fR \fIstring\fR \fIcmd\fR
+If the \fIFONT\fR declaration in the preamble does not contain
+\fIstring\fR as a substring, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+The string \fIstring\fR may not contain whitespace.
+.TP
+\fBIFFILE\fR \fIfilename\fR \fIcmd\fR
+If the file \fIfilename\fR exists, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+The string \fIfilename\fR may not contain whitespace.
+Environment variables ($HOME or ${HOME}) in \fIfilename\fR are expanded.
+.TP
+\fBIFNOTFILE\fR \fIfilename\fR \fIcmd\fR
+If the file \fIfilename\fR does not exist, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+The string \fIfilename\fR may not contain whitespace.
+Environment variables ($HOME or ${HOME}) in \fIfilename\fR are expanded.
+.TP
+\fBIFEQ\fR \fIglyphname1\fR \fIglyphname2\fR \fIcmd\fR
+If the glyph data of \fIglyphname1\fR and \fIglyphname2\fR
+(excluding name and encoding) agrees,
+executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+.TP
+\fBIFNOTEQ\fR \fIglyphname1\fR \fIglyphname2\fR \fIcmd\fR
+If the glyph data of \fIglyphname1\fR and \fIglyphname2\fR
+(excluding name and encoding) differs,
+executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+.TP
+\fBIFMATCH\fR \fIpattern\fR \fIstring\fR \fIcmd\fR
+Pattern is a non-empty string that does not contain spaces, tabs, or
+semicolons.
+If \fIpattern\fR matches \fIstring\fR, executes the mgl command \fIcmd\fR;
+otherwise does nothing.
+Within \fIpattern\fR,
+"?" matches an arbitrary character,
+"!" matches an uppercase letter ([A-Z]),
+"*" matches an arbitrary (possibly empty) string,
+"@" matches an arbitrary (possibly empty) string that does not contain
+any uppercase letter,
+and every other character matches itself.
+For instance, "LtCapE*" matches "LtCapE", "LtCapEAcute", and "LtCapEth",
+"LtCapE@" matches "LtCapE" and "LtCapEth", but not "LtCapEAcute",
+and "Lt???E!@" matches "LtCapEAcute", and "LtSmlEAcute",
+but not "LtCapE", "LtSmlE", "LtCapEth", or "LtSmlEth".
+.TP
+\fBIFNOTMATCH\fR \fIpattern\fR \fIstring\fR \fIcmd\fR
+If \fIpattern\fR does not match \fIstring\fR,
+executes the mgl command \fIcmd\fR; otherwise does nothing.
+.SS
+Iteration commands
+.TP
+\fBFOREACH\fR \fIpattern1\fR ... \fIpatternn\fR \fB;\fR \fIcmd\fR
+Every pattern is a non-empty string that does not contain spaces,
+tabs, or semicolons.
+If a pattern contains at least one of the characters "?", "*", "!", or "@",
+it represents every glyph name currently used in the glyphname index
+that is matched by it
+(as described above for \fBIFMATCH\fR).
+If a pattern has the form "#d", "#o", or "#x",
+it represents every encoding currently used in the encoding index
+(decimally, octally (without leading "0"),
+or hexadecimally (at least four digits, without leading "0x")).
+Every other pattern represents itself.
+For each string \fIstr\fR that is represented by one of the patterns,
+every occurrence of "%%" in \fIcmd\fR is replaced by "%",
+every other occurrence of "%" in \fIcmd\fR is replaced by \fIstr\fR,
+and the resulting command is executed.
+.SS
+Other commands
+.TP
+\fBINCLUDE\fR \fIfilename\fR
+Includes the mgl file \fIfilename\fR.
+The string \fIfilename\fR may not contain whitespace.
+Environment variables ($HOME or ${HOME}) in \fIfilename\fR are expanded.
+.TP
+\fBRETURN\fR \ \ \ \ \ \ \ 
+Stops executing commands in the current mgl file.
+If \fBRETURN\fR is executed in a top level mgl file,
+\fIbdfmangle\fR continues with the next top level mgl file, if any.
+If \fBRETURN\fR is executed in an included file,
+\fIbdfmangle\fR continues with the commands in the including file.
+.TP
+\fBABORT\fR [\fInumber\fR]
+Aborts \fIbdfmangle\fR with exit status \fInumber\fR (default: 0)
+without generating any bdf output.
+This can be used for consistency checking, such as
+.RS
+.PP
+if printf 'IFEQ LtCapA CyCapA ABORT 0\\nABORT 1\\n' | \\
+.br
+bdfmangle test.bdf - ; then
+.br
+.RS
+echo "Glyphs LtCapA and CyCapA look the same"
+.RE
+.br
+else
+.br
+.RS
+echo "Glyphs LtCapA and CyCapA look differently"
+.RE
+.br
+fi
+.RE
+.TP
+\fBMESSAGE\fR \fIarbitrary-text\fR
+Writes \fIarbitrary-text\fR to stderr.
+.TP
+\fBCOMMENT\fR \fIarbitrary-text\fR
+Adds "\fICOMMENT\fR \fIarbitrary-text\fR" to the output bdf file.
+.TP
+\fB#\fR \fIarbitrary-text\fR
+Does nothing. This is for comments that should \fInot\fR
+be copied to the output.
+.SS
+Command sequences
+.TP
+\fIcmd\fR \fB;\fR ... \fB;\fR \fIcmd\fR
+Executes each of the commands sequentially.
+Note that both semicolons and newlines can be used to separate commands,
+but that they behave differently
+with respect to
+comments (both "\fBCOMMENT\fR" and "\fB#\fR"),
+conditional commands, and iteration commands.
+These commands extend always
+until the end of the line and are not terminated by a semicolon.
+E.g., in
+.RS
+.PP
+.RS
+\fBIFUNDEF\fR Foo \fBCOPY\fR LtCapA Foo
+.br
+\fBMESSAGE\fR done!
+.RE
+.PP
+the \fBMESSAGE\fR command is always executed; in
+.PP
+.RS
+\fBIFUNDEF\fR Foo \fBCOPY\fR LtCapA Foo \fB;\fR \fBMESSAGE\fR done! 
+.RE
+.PP
+it is only executed if Foo was undefined; and in
+.PP
+.RS
+\fBCOMMENT\fR This is a comment ; MESSAGE done!
+.RE
+.PP
+and
+.PP
+.RS
+\fB#\fR This is a comment ; MESSAGE done!
+.RE
+.PP
+it is never executed.
+.SH LIMITATIONS
+Control flow operations (conditional and iteration commands) are
+rather rudimentary.
+.PP
+Unlike \fBPUT...\fR and \fBCOPY...\fR commands,
+glyph manipulation commands accept only glyph names as arguments,
+not glyph encodings. To perform glyph manipulation commands
+on glyphs specified by encoding, copy them to temporary names first
+(see \fIEXAMPLES\fR below).
+.PP
+If glyph names in the bdf input file contain spaces or tabs,
+these are replaced by underscores.
+.PP
+\fIBdfmangle\fR uses a semicolon as a separator in command sequences
+and \fBFOREACH\fR loops. However, the semicolon is also a legal character in
+glyph names in bdf files, and therefore one might want to use it
+within mgl command arguments.
+To avoid ambiguities, \fIbdfmangle\fR switches to compatibility mode
+as soon as it encounters a semicolon in a glyph name in the bdf input file.
+In compatibility mode,
+semicolon is a legal character in mgl command arguments,
+but command sequences and \fBFOREACH\fR loops are no longer available.
+.PP
+The BDF format does not require padding:
+Empty rows and columns may be left out
+in the bitmap data, therefore different glyphs
+may have different bounding boxes.
+However, all the glyph manipulation commands
+manipulate only the bitmap data \fIwithin\fR the given bounding box
+and leave pixels outside the bounding box unchanged.
+Consequently, the resulting glyphs will look differently
+depending on whether the original glyphs are padded or not.
+Moreover, those glyph manipulation commands
+that operate on two glyphs, such as \fBMERGE\fR or \fBHALIGN\fR,
+work only for pairs of glyphs that
+have identical bounding boxes, or in other words,
+that are padded in the same way.
+If necessary, use the \fBPAD\fR command first.
+.PP
+There is a limit on the number of nested inclusion commands.
+.PP
+If the input of \fIbdfmangle\fR is a concatenation of bdf font files,
+the second and all further preambles are discarded, even if they
+contain copyright or licensing information that has to be kept
+intact.
+It may be necessary to restore such data manually.
+.SH EXAMPLES
+Print the Greek uppercase letters of UW ttyp0 with Unicode encoding.
+If some letters are undefined, use the identlcally looking
+latin letters:
+.PP
+.RS
+IFUNDEF GkCapAlp COPYTO LtCapA GkCapAlp
+.br
+IFUNDEF GkCapBet COPYTO LtCapB GkCapBet
+.br
+IFUNDEF GkCapEps COPYTO LtCapE GkCapEps
+.br
+# and so on
+.br
+IFUNDEF GkCapTau COPYTO LtCapT GkCapTau
+.br
+IFUNDEF GkCapUps COPYTO LtCapY GkCapUps
+.br
+IFUNDEF GkCapChi COPYTO LtCapX GkCapChi
+.br
+PUT GkCapAlp 0x0391
+.br
+PUT GkCapBet 0x0392
+.br
+PUT GkCapGam 0x0393
+.br
+# and so on
+.br
+PUT GkCapChi 0x03A7
+.br
+PUT GkCapPsi 0x03A8
+.br
+PUT GkCapOme 0x03A9
+.RE
+.PP
+Produce a new glyph LtSmlCTilde
+from LtSmlC and CombTilde.
+If both the base letter and the accent have an even width,
+or if both have an odd width, the accent should be
+horizontally centered over the base letter,
+otherwise it should be slightly moved to the right side.
+There should be a one pixel vertical distance between the base letter
+and the accent, if possible:
+.PP
+.RS
+# Copy CombTilde to tmp and shift directly above LtSmlC,
+.br
+# if possible:
+.br
+COPYTO CombTilde tmp
+.br
+VALIGN TB LtSmlC tmp
+.br
+# Shift tmp one more pixel to the top, if possible:
+.br
+SHIFTUPMAX 1 tmp
+.br
+# Shift tmp to the right until it touches the right margin,
+.br
+# then center it horizontally over LtSmlC.
+.br
+# (Use SHIFTLEFTMAX if the accent should lean to the left
+.br
+# if it cannot be centered exactly):
+.br
+SHIFTRIGHTMAX 9999 tmp
+.br
+HALIGN C LtSmlC tmp
+.br
+# Merge base letter and accent to generate LtSmlCTilde:
+.br
+COPYTO LtSmlC LtSmlCTilde
+.br
+MERGE tmp LtSmlCTilde
+.br
+PUT LtSmlCTilde
+.RE
+.PP
+Do the same for LtSmlCTilde, LtSmlSTilde, and LtSmlZTilde:
+.PP
+.RS
+FOREACH LtSmlC LtSmlS LtSmlZ ; COPYTO CombTilde tmp ; VALIGN TB % tmp ; SHIFTUPMAX 1 tmp ; SHIFTRIGHTMAX 9999 tmp ; HALIGN C % tmp ; COPYTO % %Tilde ; MERGE tmp %Tilde ; PUT %Tilde
+.RE
+.PP
+(Note that the entire command must go into one line!)
+.PP
+Print all Cyrillic letters, accents, and combining marks of UW ttyp0
+(with unspecified encoding):
+.PP
+.RS
+FOREACH *Cy!* ; PUT %
+.RE
+.PP
+Remove the padding of all glyphs and print them in numerical order.
+.PP
+.RS
+# The UNPAD command requires a glyphname as argument, but
+.br
+# we want to access glyphs by encoding, so that we can
+.br
+# print them afterwards in numerical order. Therefore we
+.br
+# copy all glyphs to a temporary name first and copy them
+.br
+# back afterwards, preserving the original name:
+.br
+FOREACH #d ; COPYENCTO % tmp ; UNPAD tmp ; COPYTOENCPN tmp %
+.br
+FOREACH #d ; PUTENC %
+.RE
+.PP
+(If there are any glyphs that share the same encoding, only the last
+one will be printed).
+.PP
+Note that the following would not work as expected:
+.PP
+.RS
+FOREACH * ; UNPAD %
+.br
+FOREACH #d ; PUTENC %
+.RE
+.PP
+This would modify the glyphs stored in the glyphname index
+and print the glyphs stored in the encoding index,
+but these are independent from each other.
+.SH COPYRIGHT
+Copyright \(co 2012-2025 Uwe Waldmann.
+.PP
+Bdfmangle may be freely used, copied, or modified
+under the terms of the MIT license.

@@ -1,0 +1,31 @@
+ 1  To test whether the UW ttyp0 fonts have been correctly converted to
+ 2  PCF or OTB format and whether they are rendered correctly in terminal
+ 3  programs and editors, view this file using the Unicode version of
+ 4  UW ttyp0. (Note: The large rectangle character used in lines 22, 29,
+ 5  and 30 is located in the Unicode Private Use Area. Fonts different
+ 6  from UW ttyp0 may show a question mark, a small rectangle, or anything
+ 7  else instead. The same holds for the UW ttyp0 Linux console fonts.)
+ 8  
+ 9  Line 17 should show the letters "abcdefghijklmnopqrstuvwxyz" with
+10  a circumflex accent (^) on top of "o", "r", "u", and "x" and an
+11  underline accent (_) below "b", "e", and "h" There should be no
+12  accents anywhere else in lines 16, 17, or 18, and there should be
+13  no spaces between the letters in line 17 or the equality signs in
+14  lines 16 and 18.
+15  
+16     ==========================
+17     aḇcde̱fgẖijklmnôpqr̂stûvwx̂yz
+18     ==========================
+19  
+20  Line 22 should show a large rectangle with a one pixel border.
+21  
+22     
+23  
+24  Lines 29 and 30 should show four large rectangles touching each other
+25  without horizontal or vertical gaps (Exception: If applications offer
+26  the possibility to increase the interline spacing artificially, this
+27  feature may lead to an intentional gap between line 29 and line 30.)
+28  
+29     
+30     
+31  

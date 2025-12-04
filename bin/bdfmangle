@@ -1,0 +1,1636 @@
+#!/usr/bin/perl -w
+
+# Copyright (C) 2012-2025 Uwe Waldmann
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+use strict;
+use POSIX;
+
+my $NUMBER='(?:-?(?:0[0-7]*|0x[0-9a-fA-F]+|[1-9][0-9]*))';
+
+my $preamble = '';
+my $line = 0;
+my $cnt = 0;
+my $dflt = '';
+my $dfltstat = 0; # handling missing glyphs: 0 = abort, 1 = insert dflt, 2 = omit
+my $nextenc = 0;
+my $outtext = '';
+my $abort = 0;
+my $compatmode = 0;
+my $fontwidth = 0;
+my $fontheight = 0;
+my $fontxoff = 0;
+my $fontyoff = 0;
+my $hasfontbbx = 0;
+
+my %nameidx = (
+  #  CHARNAME => {
+  #    SHARED => 1,
+  #    NAME => '',
+  #    TEXT => '',
+  #    TEXTVALID => 1,
+  #    HEX => [ ],
+  #    HEXVALID => 0,
+  #    BIN => [ ],
+  #    BINVALID => 0,
+  #    WIDTH => 7,
+  #    HEIGHT => 14,
+  #    XOFF => 0,
+  #    YOFF => 0,
+  #    DIMVALID => -1  ## -1 = unchecked, 0 = corrupted, 1 = valid
+  #  }
+);
+
+my %encidx = (
+  #  ENCODING => {
+  #    ...
+  #  }
+);
+
+# In many applications of bdfmangle, the mgl file contains COPYTO
+# and PUT commands, but no glyph manipulation commands such as MERGE,
+# LINEMASK, SHIFTUP, or SLANT. In order to speed up this case, several
+# optimizations are used:
+# 
+# - When the bdf file is read, every glyph is stored in both %nameidx
+#   and %encidx. Even though the two entries are logically independent,
+#   they share initially the same data structure. The SHARED field is
+#   set to 1 to record this fact. Before any glyph is modfied, the
+#   two entries must be separated using
+# 
+#     $nameidx{$charname} = unshare($nameidx{$charname});
+# 
+#   this sets the SHARED field to 0 and assigns a clone of the original
+#   data structure to $nameidx{$charname}, unless the entry was already
+#   unshared before.
+# 
+# - While commands such as PUT need the textual representation of
+#   a glyph, the glyph manipulation commands work either on a vector
+#   of strings of hex digits or on a vector of strings of bits (-, #).
+#   To avoid unnecessary recomputations, the glyph data structure
+#   contains fields (TEXT, HEX, BIN) for all three representations,
+#   but only one of them must be valid at any given time. The
+#   TEXTVALID, HEXVALID, and BINVALID fields are used to record this
+#   fact. When a command requires a particular representation, it
+#   first has to call the validatetext, validatehex, or validatebin
+#   function so that the required representation is updated if
+#   necessary. When a command modifies one of the representations,
+#   it must call the invalidateallbuttext, invalidateallbuthex, or
+#   invalidateallbutbin function afterwards so that the remaining
+#   representations are marked as invalid (by setting TEXTVALID,
+#   HEXVALID, or BINVALID to 0).
+# 
+# - The glyph manipulation commands depend on the consistency of the
+#   glyph data (e.g., that the dimensions in the BBX field correspond
+#   to the size of the BITMAP data), but most other commands do not.
+#   Therefore, the consistency check for a glyph (using validatedim)
+#   is delayed until validatehex or validatebin are called for the
+#   first time for that glyph.
+
+sub todecimal {
+  my $s = $_[0];
+  if ($s =~ /^-(0.*)/) {
+    return(-oct($1));
+  } elsif ($s =~ /^0/) {
+    return(oct($s));
+  } else {
+    return(0 + $s);
+  }
+}
+
+sub envexpand {
+  my $v0 = $_[0];
+  my $v = $v0;
+  $v =~ s/^\$//;
+  $v =~ s/^\{(.*)\}$/$1/;
+  if (defined $ENV{$v}) {
+    return($ENV{$v});
+  } else {
+    return($v0);
+  }
+}
+
+sub tobits {
+  my $row = $_[0];
+  $row =~ s/\s//g;
+  $row =~ s/0/----/g;     $row =~ s/1/---#/g;
+  $row =~ s/2/--#-/g;     $row =~ s/3/--##/g;
+  $row =~ s/4/-#--/g;     $row =~ s/5/-#-#/g;
+  $row =~ s/6/-##-/g;     $row =~ s/7/-###/g;
+  $row =~ s/8/#---/g;     $row =~ s/9/#--#/g;
+  $row =~ s/[aA]/#-#-/g;  $row =~ s/[bB]/#-##/g;
+  $row =~ s/[cC]/##--/g;  $row =~ s/[dD]/##-#/g;
+  $row =~ s/[eE]/###-/g;  $row =~ s/[fF]/####/g;
+  return($row);
+}
+
+sub frombits {
+  my $row = $_[0];
+  $row =~ s/(....)/$1 /g;
+  $row =~ s/---- /0/g;    $row =~ s/---# /1/g;
+  $row =~ s/--#- /2/g;    $row =~ s/--## /3/g;
+  $row =~ s/-#-- /4/g;    $row =~ s/-#-# /5/g;
+  $row =~ s/-##- /6/g;    $row =~ s/-### /7/g;
+  $row =~ s/#--- /8/g;    $row =~ s/#--# /9/g;
+  $row =~ s/#-#- /A/g;    $row =~ s/#-## /B/g;
+  $row =~ s/##-- /C/g;    $row =~ s/##-# /D/g;
+  $row =~ s/###- /E/g;    $row =~ s/#### /F/g;
+  return($row);
+}
+
+sub blackpixels {
+  my $n = $_[0];
+  return(("FF" x (int($n-1)/8))
+            . ("80","C0","E0","F0","F8","FC","FE","FF")[($n-1)%8]);
+}
+
+sub hflip {
+  my $row = $_[0];
+  my $width = $_[1];
+  my $rowlength = length($row);
+  $row = substr($row,0,$width);
+  $row = reverse($row) . ("-" x ($rowlength - $width));
+  return($row);
+}
+
+sub shiftpixelsright {
+  my $row = $_[0];
+  my $shift = $_[1];
+  my $width = $_[2];
+  my $shiftright = 1;
+  if ($shift < 0) {
+    $shiftright = 0;
+    $shift = - $shift;
+  }
+  if ($shift > $width) {
+    $shift = $width;
+  }
+  my $rowlength = length($row);
+  if ($shiftright) {
+    $row = ("-" x $shift) . $row;
+    return(substr($row,0,$width) . ("-" x ($rowlength - $width)));
+  } else {
+    $row = $row . ("-" x $shift);
+    return(substr($row,$shift,$rowlength));
+  }
+}
+
+sub globtoregex {
+  my $s = $_[0];
+  $s =~ s/(\W)/\\$1/g;
+  $s =~ s/\\\*/.*/g;
+  $s =~ s/\\\?/./g;
+  $s =~ s/\\\!/[A-Z]/g;
+  $s =~ s/\\\@/[^A-Z]*/g;
+  $s =~ s/^/\^/;
+  $s =~ s/$/\$/;
+  return($s);
+}
+
+sub charglobexpand {
+  my $s = $_[0];
+  if ($s =~ /[@*?]/) {
+    my $sr = globtoregex($s);
+    return(sort grep(/$sr/,keys(%nameidx)));
+  } elsif ($s =~ /^#[dox]$/) {
+    if ($s eq "#d") {
+      return(sort {$a <=> $b} keys(%encidx));
+    } elsif ($s eq "#o") {
+      return(map {sprintf("%o",$_)} (sort {$a <=> $b} keys(%encidx)));
+    } elsif ($s eq "#x") {
+      return(map {sprintf("%04X",$_)} (sort {$a <=> $b} keys(%encidx)));
+    }
+  } else {
+    return(($s));
+  }
+}
+
+sub entryeq {
+  my $s1 = $_[0];
+  my $s2 = $_[1];
+  return($s1->{WIDTH} == $s2->{WIDTH}
+           && $s1->{HEIGHT} == $s2->{HEIGHT}
+           && $s1->{XOFF} == $s2->{XOFF}
+           && $s1->{YOFF} == $s2->{YOFF}
+           && join("\n",@{$s1->{HEX}}) eq join("\n",@{$s2->{HEX}}));
+}
+
+sub hspace {
+  my $s = $_[0];
+  my $width = $s->{WIDTH};
+  my $leftspaces = $width;
+  my $rightspaces = $width;
+  for (my $i = 0 ; $i <= $#{$s->{BIN}} ; $i++) {
+    if (substr(${$s->{BIN}}[$i],0,$width) =~ m/^(-*)[-#]*#(-*)$/) {
+      if (length($2) < $rightspaces) {
+        $rightspaces = length($2);
+      }
+      if (length($1) < $leftspaces) {
+        $leftspaces = length($1);
+      }
+    }
+  }
+  if ($leftspaces == $width) {
+    $rightspaces = 0;
+  }
+  return(($leftspaces,$rightspaces));
+}
+
+sub vspacebin {
+  my $s = $_[0];
+  my $toppix = -1;
+  my $botpix = 0;
+  for (my $i = 0 ; $i <= $#{$s->{BIN}} ; $i++) {
+    if (${$s->{BIN}}[$i] =~ /#/) {
+      if ($toppix == -1) {
+        $toppix = $i;
+      }
+      $botpix = $i;
+    }
+  }
+  if ($toppix == -1) {
+    return($#{$s->{BIN}} + 1, 0);
+  } else {
+    return(($toppix,$#{$s->{BIN}} - $botpix));
+  }
+}
+
+sub vspacehex {
+  my $s = $_[0];
+  my $toppix = -1;
+  my $botpix = 0;
+  for (my $i = 0 ; $i <= $#{$s->{HEX}} ; $i++) {
+    if (${$s->{HEX}}[$i] =~ /[1-9A-Fa-f]/) {
+      if ($toppix == -1) {
+        $toppix = $i;
+      }
+      $botpix = $i;
+    }
+  }
+  if ($toppix == -1) {
+    return($#{$s->{HEX}} + 1, 0);
+  } else {
+    return(($toppix,$#{$s->{HEX}} - $botpix));
+  }
+}
+
+sub invalidateallbuttext {
+  my $s = $_[0];
+  if ($s->{TEXTVALID}) {
+    $s->{HEXVALID} = 0;
+    $s->{BINVALID} = 0;
+  } else {
+    die "bdfmangle: text invalid in invalidateallbuttext $s\n";
+  }
+}
+
+sub invalidateallbuthex {
+  my $s = $_[0];
+  if ($s->{HEXVALID}) {
+    $s->{TEXTVALID} = 0;
+    $s->{BINVALID} = 0;
+  } else {
+    die "bdfmangle: hex invalid in invalidateallbuthex $s\n";
+  }
+}
+
+sub invalidateallbutbin {
+  my $s = $_[0];
+  if ($s->{BINVALID}) {
+    $s->{TEXTVALID} = 0;
+    $s->{HEXVALID} = 0;
+  } else {
+    die "bdfmangle: bin invalid in invalidateallbutbin $s\n";
+  }
+}
+
+sub validatedim {
+  my $s = $_[0];
+  my $w;
+  my $h;
+  my $xoff;
+  my $yoff;
+
+  # return: 0 = corrupted, 1 = valid
+
+  if ($s->{DIMVALID} >= 0) {
+    return($s->{DIMVALID});
+  }
+  if ($s->{TEXT} =~ /^BBX(([ \t].*)?)\n/m) {
+    my $aux = $1;
+    if ($aux =~ /^\s+(\d+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s*$/) {
+      $w = 0 + $1;
+      $h = 0 + $2;
+      $xoff = 0 + $3;
+      $yoff = 0 + $4;
+      if ($w == 0 || $h == 0) {
+        $s->{DIMVALID} = 0;
+        warn "bdfmangle: zero width or height in BBX line: BBX$aux\n";
+        return(0);
+      }
+    } else {
+      $s->{DIMVALID} = 0;
+      warn "bdfmangle: invalid BBX line: BBX$aux\n";
+      return(0);
+    }
+  } else {
+    $s->{DIMVALID} = 0;
+    warn "bdfmangle: missing BBX line for character \"$s->{NAME}\"\n";
+    return(0);
+  }
+  $s->{WIDTH} = $w;
+  $s->{HEIGHT} = $h;
+  $s->{XOFF} = $xoff;
+  $s->{YOFF} = $yoff;
+  if ($s->{TEXT} =~ m/\nBITMAP\s*\n([\d\D]*\n)ENDCHAR\s*\n/) {
+    my $aux = $1;
+    my $w = (int(($w - 0.5)/8)+1)*2;
+    if ($aux =~ /^([0-9A-Fa-f]{$w}[ \t]*\n){$h}$/) {
+      $s->{DIMVALID} = 1;
+      return(1);
+    } else {
+      $s->{DIMVALID} = 0;
+      warn "bdfmangle: inconsistent BBX and BITMAP for character \"$s->{NAME}\"\n";
+      return(0);
+    }
+  } else {
+    $s->{DIMVALID} = 0;
+    warn "bdfmangle: missing BITMAP for character \"$s->{NAME}\"\n";
+    return(0);
+  }
+}
+
+sub validatetext {
+  my $s = $_[0];
+  if ($s->{TEXTVALID}) {
+    return(1);
+  } elsif (validatehex($s)) {
+    my $bitmap = join("\n", @{$s->{HEX}});
+    $s->{TEXT} =~ s/\nBITMAP\s*\n[\d\D]*/\nBITMAP\n$bitmap\nENDCHAR\n/;
+    $s->{TEXTVALID} = 1;
+    return(1);
+  } else {
+    return(0);
+  }
+}
+
+sub validatehex {
+  my $s = $_[0];
+  # return: 0 = corrupted, 1 = valid
+
+  if ($s->{HEXVALID}) {
+    return(1);
+  } elsif ($s->{BINVALID}) {
+    $s->{HEX} = [ map { frombits($_) } @{$s->{BIN}} ];
+    $s->{HEXVALID} = 1;
+    return(1);
+  } elsif ($s->{TEXTVALID}) {
+    if (validatedim($s)) {
+      $s->{TEXT} =~ m/\nBITMAP\s*\n([\d\D]*)\nENDCHAR\s*\n/;
+      $s->{HEX} = [ split(/[ \t]*\n/,uc($1)) ];
+      $s->{HEXVALID} = 1;
+      return(1);
+    } else {
+      return(0);
+    }
+  } else {
+    die "bdfmangle: cannot validate $s\n";
+  }
+}
+
+sub validatebin {
+  my $s = $_[0];
+  # return: 0 = corrupted, 1 = valid
+
+  if ($s->{BINVALID}) {
+    return(1);
+  } elsif (validatehex($s)) {
+    $s->{BIN} = [ map { tobits($_) } @{$s->{HEX}} ];
+    $s->{BINVALID} = 1;
+    return(1);
+  } else {
+    return(0);
+  }
+}
+
+sub create {
+  my ($name,$text) = @_;
+  my %char = (
+    SHARED => 1,
+    NAME => $name,
+    TEXT => $text,
+    TEXTVALID => 1,
+    HEX => [ ],
+    HEXVALID => 0,
+    BIN => [ ],
+    BINVALID => 0,
+    WIDTH => 0,
+    HEIGHT => 0,
+    XOFF => 0,
+    YOFF => 0,
+    DIMVALID => -1
+  );
+  return(\%char);
+}
+
+sub clone {
+  my $s = $_[0];
+  my %char = (
+    SHARED => 0,
+    NAME => $s->{NAME},
+    TEXT => $s->{TEXT},
+    TEXTVALID => $s->{TEXTVALID},
+    HEX => [ @{$s->{HEX}} ],
+    HEXVALID => $s->{HEXVALID},
+    BIN => [ @{$s->{BIN}} ],
+    BINVALID => $s->{BINVALID},
+    WIDTH => $s->{WIDTH},
+    HEIGHT => $s->{HEIGHT},
+    XOFF => $s->{XOFF},
+    YOFF => $s->{YOFF},
+    DIMVALID => $s->{DIMVALID}
+  );
+  return(\%char);
+}
+
+sub unshare {
+  my $s = $_[0];
+  if ($s->{SHARED}) {
+    $s->{SHARED} = 0;
+    return(clone($s));
+  } else {
+    return($s);
+  }
+}
+
+sub appendglyph {
+  my ($name, $enc, $entry) = @_;
+
+  validatetext($entry);
+  $outtext .= "STARTCHAR $name\nENCODING $enc\n$entry->{TEXT}";
+  $cnt++;
+}
+
+sub appendcomment {
+  $outtext .= $_[0];
+}
+
+sub processbdf {
+  my $bdffile = $_[0];
+
+  my $ignorechar = 0;
+  my $first = 1;
+  my $chartext = '';
+  my $charname = '';
+  my $charenc = -1;
+  my $charwidth = -1;
+  my $charheight = -1;
+  my $aux = '';
+  my $bdfhandle;
+
+  if ($bdffile eq '-') {
+    $bdfhandle = *STDIN;
+  } else {
+    open $bdfhandle, '<', $bdffile or die "bdfmangle: cannot open bdffile \"$bdffile\"\nbdfmangle: stopped\n";
+  }
+  
+  while (<$bdfhandle>) {
+    if ($first && (/^STARTFONT\s/ .. /^CHARS\s/)) {
+      $preamble .= $_;
+      if (/^CHARS(\s.*)?$/) {
+        $first = 0;
+        if ($preamble =~ m/^FONTBOUNDINGBOX\s+(\d+)\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s*$/m) {
+          $hasfontbbx = 1;
+          $fontwidth = 0 + $1;
+          $fontheight = 0 + $2;
+          $fontxoff = 0 + $3;
+          $fontyoff = 0 + $4;
+        }
+      }
+    } elsif (/^STARTCHAR\s/ .. /^ENDCHAR\s/) {
+      $chartext .= $_;
+      if (/^ENDCHAR(\s.*)?$/) {
+        $charname = '';
+        if ($chartext =~ s/^STARTCHAR(([ \t].*)?)\n//) {
+          $aux = $1;
+        $aux =~ s/^\s*//;
+        $aux =~ s/\s*$//;
+        $charname = $aux;
+        if ($aux eq '') {
+            warn "bdfmangle: missing name in STARTCHAR line\n";
+            $ignorechar = 1;
+          } else {
+            if (! $compatmode && $charname =~ m/;/) {
+              $compatmode = 1;
+              warn "bdfmangle: name \"$aux\" in STARTCHAR line contains a semicolon,\n   switching to compatibility mode (some commands are no longer available!)\n";
+            }
+            if ($charname =~ s/\s/_/g) {
+              warn "bdfmangle: name \"$aux\" in STARTCHAR line contains embedded spaces,\n  using \"$charname\" instead\n";
+            }
+          }
+        } else {
+          warn "bdfmangle: illegal STARTCHAR line\n";
+          $ignorechar = 1;
+        }
+        $charenc = -1;
+        if ($chartext =~ s/^ENCODING(([ \t].*)?)\n//m) {
+          $aux = $1;
+          if ($aux =~ /^[ \t]+(-?\d+)([ \t].*)?$/) {
+            $charenc = 0 + $1;
+          } else {
+            warn "bdfmangle: invalid ENCODING line: ENCODING$aux\n,  using -1 instead\n";
+          }
+        } else {
+          warn "bdfmangle: no ENCODING line for character \"$charname\",\n  using -1 instead\n";
+        }
+        if (! $ignorechar) {
+          $nameidx{$charname} = create($charname,$chartext);
+          $encidx{$charenc} = $nameidx{$charname};
+        } else {
+          $ignorechar = 0;
+        }
+        $chartext = '';
+      }
+    }
+  }
+  if ($chartext ne '') {
+    warn "bdfmangle: last glyph is incomplete\n";
+  }
+  if ($first == 1) {
+    if ($preamble eq '') {
+      die "bdfmangle: no preamble found\nbdfmangle: stopped\n";
+    } else {
+      die "bdfmangle: preamble is incomplete\nbdfmangle: stopped\n";
+    }
+  }
+  
+  close($bdfhandle);
+}
+
+sub processmgl {
+  my ($mglfile, $reccnt) = @_;
+  my $mglhandle;
+  my @cmdstack = ();
+  
+  if ($reccnt >= 32) {
+    die "bdfmangle: too many recursively included mangle files\nbdfmangle: stopped\n";
+  }
+  if ($mglfile eq '-') {
+    $mglhandle  = *STDIN;
+  } else {
+    open $mglhandle, '<', $mglfile or die "bdfmangle: cannot open manglefile \"$mglfile\"\nbdfmangle: stopped\n";
+  }
+
+  while (<$mglhandle>) {
+
+    push @cmdstack, $_;
+
+    LINE: while (@cmdstack) {
+
+      $_ = pop(@cmdstack);
+
+      s/^\s+//;
+      while (/^((COMMENT|IF(UN)?DEF(ENC)?|IF(NOT)?(FONT|FILE|EQ|MATCH)|FOREACH)\b|\#)/) {
+
+        if (/^COMMENT(\s.*)?\n$/) {
+          appendcomment($_);
+          next LINE;
+
+        } elsif (/^\#/) {
+          next LINE;
+
+        } elsif (s/^IFFONT\s+(\S+)\s+//) {
+          my $substring = $1;
+          $preamble =~ m/\nFONT[ \t]([^\n]*)\n/;
+          my $font = $1;
+          if (index($font,$substring) < 0) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFNOTFONT\s+(\S+)\s+//) {
+          my $substring = $1;
+          $preamble =~ m/\nFONT[ \t]([^\n]*)\n/;
+          my $font = $1;
+          if (index($font,$substring) >= 0) {
+            s/.*//;
+          }
+
+        } elsif (s/^(IF(NOT)?MATCH)\s+(\S+)\s+(\S+)\s+//) {
+          my $cmd = $1;
+          my $pat = $3;
+          my $string = $4;
+          $pat = globtoregex($pat);
+          if (($cmd eq "IFMATCH" && $string !~ /$pat/) ||
+              ($cmd eq "IFNOTMATCH" && $string =~ /$pat/)) {
+            s/.*//;
+          }
+
+        } elsif (s/^(IF(NOT)?EQ)\s+(\S+)\s+(\S+)\s+//) {
+          my $cmd = $1;
+          my $charname1 = $3;
+          my $charname2 = $4;
+          if (! defined $nameidx{$charname1}) {
+            warn "bdfmangle: no glyph named \"$charname1\"\n";
+            $abort = 1;
+            next LINE;
+          }
+          if (! defined $nameidx{$charname2}) {
+            warn "bdfmangle: no glyph named \"$charname2\"\n";
+            $abort = 1;
+            next LINE;
+          }
+          my $entry1 = $nameidx{$charname1};
+          my $entry2 = $nameidx{$charname2};
+          if (! validatebin($entry1) || ! validatebin($entry2)) {
+            $abort = 1;
+            next LINE;
+          }
+          if (($cmd eq "IFEQ" && ! entryeq($entry1,$entry2)) ||
+              ($cmd eq "IFNOTEQ" && entryeq($entry1,$entry2))) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFFILE\s+(\S+)\s+//) {
+          my $fname = $1;
+          $fname =~ s/(\$(\{\w+\}|\w+))/envexpand($1)/ge;
+          if (! -e $fname) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFNOTFILE\s+(\S+)\s+//) {
+          my $fname = $1;
+          $fname =~ s/(\$(\{\w+\}|\w+))/envexpand($1)/ge;
+          if (-e $fname) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFDEF\s+(\S+)\s+//) {
+          if (! defined $nameidx{$1}) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFUNDEF\s+(\S+)\s+//) {
+          if (defined $nameidx{$1}) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFDEFENC\s+($NUMBER)\s+//o) {
+          my $enc = todecimal($1);
+          if (! defined $encidx{$enc}) {
+            s/.*//;
+          }
+
+        } elsif (s/^IFUNDEFENC\s+($NUMBER)\s+//o) {
+          my $enc = todecimal($1);
+          if (defined $encidx{$enc}) {
+            s/.*//;
+          }
+
+        } elsif (! $compatmode && s/^FOREACH\s+([^;]*);//) {
+          my $argstring = $1;
+          my $body = $_;
+          $argstring =~ s/\s+/ /g;
+          $argstring =~ s/ $//;
+          my @args0 = split(/ /,$argstring);
+          my @args = reverse map { charglobexpand($_) } @args0;
+
+          foreach (@args) {
+            my $cbody = $body;
+            $cbody =~ s/\%\%/\000/g;
+            $cbody =~ s/\%/$_/g;
+            $cbody =~ s/\000/\%/g;
+            push @cmdstack, $cbody;
+          }
+          next LINE;
+
+        } elsif ($compatmode && m/^FOREACH/) {
+          die "bdfmangle: cannot use FOREACH in compatibility mode\nbdfmangle: stopped\n";
+
+        } else {
+          die "bdfmangle: illegal input in mangle file: ${_}bdfmangle: stopped\n";
+        }
+      }
+
+      if (! $compatmode && s/;\s*(.*\n)/\n/) {
+        push @cmdstack, $1;
+      }
+      
+      if (/^PUT\s+(\S+)\s+($NUMBER?)\s*$/o) {
+        my $oldcharname = $1;
+        my $newcharenc = $2;
+        if ($newcharenc eq '') {
+          $newcharenc = $nextenc++;
+        } else {
+          $newcharenc = todecimal($newcharenc);
+          $nextenc = $newcharenc + 1;
+        }
+        if (defined $nameidx{$oldcharname}) {
+          appendglyph($oldcharname,$newcharenc,$nameidx{$oldcharname});
+        } else {
+          if ($dfltstat == 0) {
+            warn "bdfmangle: no glyph named \"$oldcharname\"\n";
+            $abort = 1;
+          } elsif ($dfltstat == 1) {
+            appendglyph($oldcharname,$newcharenc,$dflt);
+          }
+        }
+
+      } elsif (/^PUTENC\s+($NUMBER)\s+($NUMBER?)\s*$/o) {
+        my $oldcharenc = todecimal($1);
+        my $newcharenc = $2;
+        if ($newcharenc eq '') {
+          $newcharenc = $nextenc++;
+        } else {
+          $newcharenc = todecimal($newcharenc);
+          $nextenc = $newcharenc + 1;
+        }
+        if (defined $encidx{$oldcharenc}) {
+          appendglyph($encidx{$oldcharenc}->{NAME},$newcharenc,$encidx{$oldcharenc});
+        } else {
+          if ($dfltstat == 0) {
+            warn "bdfmangle: no glyph with encoding $oldcharenc\n";
+            $abort = 1;
+          } elsif ($dfltstat == 1) {
+            appendglyph($dflt->{NAME},$newcharenc,$dflt);
+          }
+        }
+
+      } elsif (/^PUTAS\s+(\S+)\s+(\S+)\s+($NUMBER?)\s*$/o) {
+        my $oldcharname = $1;
+        my $newcharname = $2;
+        my $newcharenc = $3;
+        if ($newcharenc eq '') {
+          $newcharenc = $nextenc++;
+        } else {
+          $newcharenc = todecimal($newcharenc);
+          $nextenc = $newcharenc + 1;
+        }
+        if (defined $nameidx{$oldcharname}) {
+          appendglyph($newcharname,$newcharenc,$nameidx{$oldcharname});
+        } else {
+          if ($dfltstat == 0) {
+            warn "bdfmangle: no glyph named \"$oldcharname\"\n";
+            $abort = 1;
+          } elsif ($dfltstat == 1) {
+            appendglyph($newcharname,$newcharenc,$dflt);
+          }
+        }
+
+      } elsif (/^PUTENCAS\s+($NUMBER)\s+(\S+)\s+($NUMBER?)\s*$/o) {
+        my $oldcharenc = todecimal($1);
+        my $newcharname = $2;
+        my $newcharenc = $3;
+        if ($newcharenc eq '') {
+          $newcharenc = $nextenc++;
+        } else {
+          $newcharenc = todecimal($newcharenc);
+          $nextenc = $newcharenc + 1;
+        }
+        if (defined $encidx{$oldcharenc}) {
+          appendglyph($newcharname,$newcharenc,$encidx{$oldcharenc});
+        } else {
+          if ($dfltstat == 0) {
+            warn "bdfmangle: no glyph with encoding $oldcharenc\n";
+            $abort = 1;
+          } elsif ($dfltstat == 1) {
+            appendglyph($newcharname,$newcharenc,$dflt);
+          }
+        }
+
+      } elsif (/^(HFLIP(?:BBX)?|ROTATE(?:BBX)?|PAD|UNPAD)\s+(\S+)\s*$/) {
+        my $entry;
+
+        my $cmd = $1;
+        my $charname = $2;
+        if (! defined $nameidx{$charname}) {
+          warn "bdfmangle: no glyph named \"$charname\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname} = unshare($nameidx{$charname});
+        $entry = $nameidx{$charname};
+        if (! validatebin($entry)) {
+          $abort = 1;
+          next LINE;
+        }
+        if ($cmd eq "HFLIPBBX" || $cmd eq "ROTATEBBX") {
+          for (my $i = 0 ; $i <= $#{$entry->{BIN}} ; $i++) {
+            ${$entry->{BIN}}[$i] = hflip(${$entry->{BIN}}[$i],$entry->{WIDTH});
+          }
+          if ($cmd eq "ROTATEBBX") {
+            @{$entry->{BIN}} = reverse(@{$entry->{BIN}});
+          }
+          invalidateallbutbin($entry);
+        } elsif ($cmd eq "HFLIP" || $cmd eq "ROTATE") {
+          my ($leftspaces,$rightspaces) = hspace($entry);
+          my $width = $entry->{WIDTH};
+          if ($leftspaces < $width) {
+            for (my $i = 0 ; $i <= $#{$entry->{BIN}} ; $i++) {
+              my $s = substr(${$entry->{BIN}}[$i],
+                             $leftspaces,
+                             $width-$leftspaces-$rightspaces);
+              substr(${$entry->{BIN}}[$i],
+                     $leftspaces,
+                     $width-$leftspaces-$rightspaces) = reverse($s);
+            }
+          }
+          if ($cmd eq "ROTATE") {
+            my ($topspaces,$botspaces) = vspacebin($entry);
+            if ($topspaces <= $#{$entry->{BIN}}) {
+              my @aux = @{$entry->{BIN}}[$topspaces .. ($#{$entry->{BIN}} - $botspaces)];
+              @{$entry->{BIN}}[$topspaces .. ($#{$entry->{BIN}} - $botspaces)] = reverse(@aux);
+            }
+          }
+          invalidateallbutbin($entry);
+        } elsif ($cmd eq "UNPAD") {
+          my $width = $entry->{WIDTH};
+          my $height = $entry->{HEIGHT};
+          my $xoff = $entry->{XOFF};
+          my $yoff = $entry->{YOFF};
+          my ($leftspaces,$rightspaces) = hspace($entry);
+          my ($topspaces,$botspaces) = vspacebin($entry);
+          if ($topspaces == $height) {
+            # must be a space glyph, therefore $leftspaces == $width
+            # and $botspaces == 0, $rightspaces == 0.
+            # return the pixel at (0,0), if it is both in the BBX
+            # and the FONTBOUNDINGBOX, otherwise return the rightmost
+            # bottommost pixel in the original BBX.
+            if ($hasfontbbx
+                  && $fontxoff <= 0
+                  && 0 <= $fontxoff + $fontwidth - 1
+                  && $fontyoff <= 0
+                  && 0 <= $fontyoff + $fontheight - 1
+                  && $xoff <= 0
+                  && 0 <= $xoff + $width - 1
+                  && $yoff <= 0
+                  && 0 <= $yoff + $height - 1) {
+              $leftspaces = - $xoff;
+              $rightspaces = $xoff + $width - 1;
+              $botspaces = - $yoff;
+              $topspaces = $yoff + $height - 1;
+            } else {
+              $topspaces--;
+              $leftspaces--;
+            }
+          }
+          if ($topspaces + $botspaces > 0) {
+            my $upper = $#{$entry->{BIN}} - $botspaces;
+            @{$entry->{BIN}} = @{$entry->{BIN}}[$topspaces .. $upper];
+          }
+          if ($leftspaces + $rightspaces > 0) {
+            my $spaces = "-" x (7-($width-$leftspaces-$rightspaces-1)%8);
+            for (my $i = 0 ; $i <= $#{$entry->{BIN}} ; $i++) {
+              ${$entry->{BIN}}[$i] = substr(${$entry->{BIN}}[$i],
+                                            $leftspaces,
+                                            $width-$leftspaces-$rightspaces)
+                                       . $spaces;
+            }
+          }
+          $width = $width - $leftspaces - $rightspaces;
+          $height = $height - $topspaces - $botspaces;
+          $xoff = $xoff + $leftspaces;
+          $yoff = $yoff + $botspaces;
+          $entry->{TEXT} =~ s/^BBX.*/BBX $width $height $xoff $yoff/m;
+          $entry->{WIDTH} = $width;
+          $entry->{HEIGHT} = $height;
+          $entry->{XOFF} = $xoff;
+          $entry->{YOFF} = $yoff;
+          invalidateallbutbin($entry);
+        } elsif ($cmd eq "PAD") {
+          my $width = $entry->{WIDTH};
+          my $height = $entry->{HEIGHT};
+          my $xoff = $entry->{XOFF};
+          my $yoff = $entry->{YOFF};
+          if (! $hasfontbbx) {
+            warn "bdfmangle: font has no FONTBOUNDINGBOX; cannot pad\n";
+            $abort = 1;
+            next LINE;
+          }
+          if ($xoff < $fontxoff || $yoff < $fontyoff
+                || $xoff+$width > $fontxoff+$fontwidth
+                || $yoff+$height > $fontyoff+$fontheight) {
+            warn "bdfmangle: BBX of \"$charname\" does not fit into FONTBOUNDINGBOX; cannot pad\n";
+            $abort = 1;
+            next LINE;
+          }
+          my $roundedwidth = (int(($fontwidth-1)/8)+1)*8;
+          my $leftspaces = "-" x ($xoff - $fontxoff);
+          my $rightspaces = "-" x ($fontxoff + $roundedwidth - $xoff - $width);
+          my $botspaces = $yoff - $fontyoff;
+          my $topspaces = $fontyoff + $fontheight - $yoff - $height;
+          my $empty = "-" x $roundedwidth;
+          for (my $i = 0 ; $i <= $#{$entry->{BIN}} ; $i++) {
+             ${$entry->{BIN}}[$i] = $leftspaces
+                                      . substr(${$entry->{BIN}}[$i],
+                                               0, $width)
+                                      . $rightspaces;
+          }
+          $entry->{BIN} = [ ($empty) x $topspaces, @{$entry->{BIN}}, ($empty) x $botspaces ];
+          $entry->{TEXT} =~ s/^BBX.*/BBX $fontwidth $fontheight $fontxoff $fontyoff/m;
+          $entry->{WIDTH} = $fontwidth;
+          $entry->{HEIGHT} = $fontheight;
+          $entry->{XOFF} = $fontxoff;
+          $entry->{YOFF} = $fontyoff;
+          invalidateallbutbin($entry);
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+
+      } elsif (/^SLANT\s+($NUMBER)\s+(($NUMBER)\s+)?(\S+)\s*$/) {
+        my $slant;
+        my $sign;
+        my $charname;
+        my $baseline;
+        my $baselineknown;
+        my $entry;
+        my $width;
+        my $height;
+        if (/^SLANT\s+($NUMBER)\s+($NUMBER)\s+(\S+)\s*$/) {
+          $slant = todecimal($1);
+          $baseline = todecimal($2);
+          $charname = $3;
+          $baselineknown = 1;
+        } else {
+          /^SLANT\s+($NUMBER)\s+(\S+)\s*$/;
+          $slant = todecimal($1);
+          $charname = $2;
+          $baselineknown = 0;
+        }
+        if ($slant > 0) {
+          $sign = 1;
+        } elsif ($slant < 0) {
+          $sign = -1;
+          $slant = - $slant;
+        } else {
+          warn "bdfmangle: slant must be non-zero\n";
+          $abort = 1;
+          next LINE;
+        }
+        if (! defined $nameidx{$charname}) {
+          warn "bdfmangle: no glyph named \"$charname\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname} = unshare($nameidx{$charname});
+        $entry = $nameidx{$charname};
+        if (! validatebin($entry)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width = $entry->{WIDTH};
+        $height = $entry->{HEIGHT};
+        if (! $baselineknown) {
+          $baseline = POSIX::ceil(($height + $slant/10)/2);
+        }
+        for (my $i = 0 ; $i < $height ; $i++) {
+          ${$entry->{BIN}}[$i] = shiftpixelsright(
+                                   ${$entry->{BIN}}[$i],
+                                   $sign * POSIX::floor(($baseline-1-$i)*10/$slant),
+                                   $width);
+        }
+        invalidateallbutbin($entry);
+
+      } elsif (/^SHIFT(LEFT|RIGHT)((?:MAX)?)\s+($NUMBER)\s+(\S+)\s*$/) {
+        my $cmd;
+        my $optmax;
+        my $shift;
+        my $charname;
+        my $entry;
+        my $width;
+        my $height;
+
+        $cmd = $1;
+        $optmax = $2;
+        if ($cmd eq "RIGHT") {
+          $shift = todecimal($3);
+        } else {
+          $shift = -1 * todecimal($3);
+        }
+        $charname = $4;
+        if (! defined $nameidx{$charname}) {
+          warn "bdfmangle: no glyph named \"$charname\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname} = unshare($nameidx{$charname});
+        $entry = $nameidx{$charname};
+        if (! validatebin($entry)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width = $entry->{WIDTH};
+        $height = $entry->{HEIGHT};
+
+	if ($optmax eq "MAX") {
+	  my ($leftspaces,$rightspaces) = hspace($entry);
+	  if ($shift > $rightspaces) {
+	    $shift = $rightspaces;
+	  } elsif ($shift < - $leftspaces) {
+	    $shift = - $leftspaces
+	  }
+	}
+	for (my $i = 0 ; $i < $height ; $i++) {
+	  ${$entry->{BIN}}[$i] = shiftpixelsright(${$entry->{BIN}}[$i],$shift,$width);
+	}
+        invalidateallbutbin($entry);
+
+      } elsif (/^HALIGN\s+([LCR][LCR]?)\s+(\S+)\s+(\S+)\s*$/) {
+        my $param;
+        my $charname1;
+        my $charname2;
+        my $entry1;
+        my $entry2;
+        my $width1;
+        my $width2;
+        my $height1;
+        my $height2;
+        my $xoff1;
+        my $xoff2;
+        my $yoff1;
+        my $yoff2;
+        my $diff2;
+        my $shift;
+
+        $param = $1;
+        $charname1 = $2;
+        $charname2 = $3;
+        if (! defined $nameidx{$charname1}) {
+          warn "bdfmangle: no glyph named \"$charname1\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        if (! defined $nameidx{$charname2}) {
+          warn "bdfmangle: no glyph named \"$charname2\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname2} = unshare($nameidx{$charname2});
+        $entry1 = $nameidx{$charname1};
+        $entry2 = $nameidx{$charname2};
+        if (! validatebin($entry1) || ! validatebin($entry2)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width1 = $entry1->{WIDTH};
+        $width2 = $entry2->{WIDTH};
+        $height1 = $entry1->{HEIGHT};
+        $height2 = $entry2->{HEIGHT};
+        $xoff1 = $entry1->{XOFF};
+        $xoff2 = $entry2->{XOFF};
+        $yoff1 = $entry1->{YOFF};
+        $yoff2 = $entry2->{YOFF};
+
+        if ($width1 != $width2 || $height1 != $height2 
+                         || $xoff1 != $xoff2 || $yoff1 != $yoff2) {
+          warn "bdfmangle: bounding boxes of glyphs \"$charname1\" and \"$charname2\" differ\n";
+          $abort = 1;
+          next LINE;
+        }
+
+	my ($leftspaces1,$rightspaces1) = hspace($entry1);
+	my ($leftspaces2,$rightspaces2) = hspace($entry2);
+
+        if ($param =~ /^L/) {
+          $diff2 = 2 * $leftspaces1;
+        } elsif ($param =~ /^R/) {
+          $diff2 = 2 * ($width1 - $rightspaces1);
+        } elsif ($param =~ /^C/) {
+          $diff2 = $leftspaces1 + $width1 - $rightspaces1;
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+        if ($param =~ /L$/) {
+          $diff2 -= 2 * $leftspaces2;
+        } elsif ($param =~ /R$/) {
+          $diff2 -= 2 * ($width2 - $rightspaces2);
+        } elsif ($param =~ /C$/) {
+          $diff2 -= $leftspaces2 + $width2 - $rightspaces2;
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+        if ($diff2 >= 0) {
+          $shift = POSIX::floor($diff2 / 2);
+        } else {
+          $shift = POSIX::ceil($diff2 / 2);
+        }
+        if ($shift > $rightspaces2) {
+          $shift = $rightspaces2;
+        } elsif ($shift < - $leftspaces2) {
+          $shift = - $leftspaces2;
+        }
+	if ($shift != 0) {
+	  for (my $i = 0 ; $i < $height2 ; $i++) {
+	    ${$entry2->{BIN}}[$i] = shiftpixelsright(${$entry2->{BIN}}[$i],$shift,$width2);
+	  }
+	  invalidateallbutbin($entry2);
+	}
+
+      } elsif (/^VALIGN\s+([TCB][TCB]?)\s+(\S+)\s+(\S+)\s*$/) {
+        my $param;
+        my $charname1;
+        my $charname2;
+        my $entry1;
+        my $entry2;
+        my $width1;
+        my $width2;
+        my $height1;
+        my $height2;
+        my $xoff1;
+        my $xoff2;
+        my $yoff1;
+        my $yoff2;
+        my $diff2;
+        my $shift;
+
+        $param = $1;
+        $charname1 = $2;
+        $charname2 = $3;
+        if (! defined $nameidx{$charname1}) {
+          warn "bdfmangle: no glyph named \"$charname1\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        if (! defined $nameidx{$charname2}) {
+          warn "bdfmangle: no glyph named \"$charname2\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname2} = unshare($nameidx{$charname2});
+        $entry1 = $nameidx{$charname1};
+        $entry2 = $nameidx{$charname2};
+        if (! validatehex($entry1) || ! validatehex($entry2)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width1 = $entry1->{WIDTH};
+        $width2 = $entry2->{WIDTH};
+        $height1 = $entry1->{HEIGHT};
+        $height2 = $entry2->{HEIGHT};
+        $xoff1 = $entry1->{XOFF};
+        $xoff2 = $entry2->{XOFF};
+        $yoff1 = $entry1->{YOFF};
+        $yoff2 = $entry2->{YOFF};
+
+        if ($width1 != $width2 || $height1 != $height2 
+                         || $xoff1 != $xoff2 || $yoff1 != $yoff2) {
+          warn "bdfmangle: bounding boxes of glyphs \"$charname1\" and \"$charname2\" differ\n";
+          $abort = 1;
+          next LINE;
+        }
+
+        my ($topspaces1,$botspaces1) = vspacehex($entry1);
+        my ($topspaces2,$botspaces2) = vspacehex($entry2);
+
+        if ($param =~ /^T/) {
+          $diff2 = 2 * $topspaces1;
+        } elsif ($param =~ /^B/) {
+          $diff2 = 2 * ($height1 - $botspaces1);
+        } elsif ($param =~ /^C/) {
+          $diff2 = $topspaces1 + $height1 - $botspaces1;
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+        if ($param =~ /T$/) {
+          $diff2 -= 2 * $topspaces2;
+        } elsif ($param =~ /B$/) {
+          $diff2 -= 2 * ($height2 - $botspaces2);
+        } elsif ($param =~ /C$/) {
+          $diff2 -= $topspaces2 + $height2 - $botspaces2;
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+        if ($diff2 >= 0) {
+          $shift = POSIX::floor($diff2 / 2);
+        } else {
+          $shift = POSIX::ceil($diff2 / 2);
+        }
+        if ($shift > $botspaces2) {
+          $shift = $botspaces2;
+        } elsif ($shift < - $topspaces2) {
+          $shift = - $topspaces2;
+        }
+        my $empty = $entry2->{HEX}[0];
+        $empty =~ s/[1-9A-Fa-f]/0/g;
+        if ($shift > 0) {
+          $entry2->{HEX} = [ ($empty) x $shift, @{$entry2->{HEX}}[0 .. ($#{$entry2->{HEX}} - $shift)] ];
+          invalidateallbuthex($entry2);
+        } elsif ($shift < 0) {
+          $shift = - $shift;
+          $entry2->{HEX} = [ @{$entry2->{HEX}}[$shift .. $#{$entry2->{HEX}}], ($empty) x $shift ];
+          invalidateallbuthex($entry2);
+        }
+
+      } elsif (/^(MERGE|INTERSECT|OVERWRITE|LINEMASK|INVLINEMASK)\s+(\S+)\s+(\S+)\s*$/) {
+        my $cmd;
+        my $charname1;
+        my $charname2;
+        my $entry1;
+        my $entry2;
+        my $width1;
+        my $width2;
+        my $height1;
+        my $height2;
+        my $xoff1;
+        my $xoff2;
+        my $yoff1;
+        my $yoff2;
+
+        $cmd = $1;
+        $charname1 = $2;
+        $charname2 = $3;
+        if (! defined $nameidx{$charname1}) {
+          warn "bdfmangle: no glyph named \"$charname1\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        if (! defined $nameidx{$charname2}) {
+          warn "bdfmangle: no glyph named \"$charname2\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname2} = unshare($nameidx{$charname2});
+        $entry1 = $nameidx{$charname1};
+        $entry2 = $nameidx{$charname2};
+        if (! validatehex($entry1) || ! validatehex($entry2)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width1 = $entry1->{WIDTH};
+        $width2 = $entry2->{WIDTH};
+        $height1 = $entry1->{HEIGHT};
+        $height2 = $entry2->{HEIGHT};
+        $xoff1 = $entry1->{XOFF};
+        $xoff2 = $entry2->{XOFF};
+        $yoff1 = $entry1->{YOFF};
+        $yoff2 = $entry2->{YOFF};
+
+        if ($width1 != $width2 || $height1 != $height2
+                         || $xoff1 != $xoff2 || $yoff1 != $yoff2) {
+          warn "bdfmangle: bounding boxes of glyphs \"$charname1\" and \"$charname2\" differ;\n  use PAD first\n";
+          $abort = 1;
+          next LINE;
+        }
+        if ($cmd eq "MERGE") {
+          my $l = length(${$entry2->{HEX}}[0]);
+          for (my $i = 0 ; $i < $height2 ; $i++) {
+            my $b = "";
+            for (my $j = 0 ; $j < $l ; $j += 2) {
+              $b .= (sprintf "%02X", (hex(substr(${$entry1->{HEX}}[$i],$j,2))
+                                      | hex(substr(${$entry2->{HEX}}[$i],$j,2))));
+            }
+            ${$entry2->{HEX}}[$i] = $b;
+          }
+          invalidateallbuthex($entry2);
+        } elsif ($cmd eq "INTERSECT") {
+          my $l = length(${$entry2->{HEX}}[0]);
+          for (my $i = 0 ; $i < $height2 ; $i++) {
+            my $b = "";
+            for (my $j = 0 ; $j < $l ; $j += 2) {
+              $b .= (sprintf "%02X", (hex(substr(${$entry1->{HEX}}[$i],$j,2))
+                                      & hex(substr(${$entry2->{HEX}}[$i],$j,2))));
+            }
+            ${$entry2->{HEX}}[$i] = $b;
+          }
+          invalidateallbuthex($entry2);
+        } elsif ($cmd eq "LINEMASK") {
+          for (my $i = 0 ; $i < $height2 ; $i++) {
+            if (${$entry1->{HEX}}[$i] =~ m/^0*$/) {
+              ${$entry2->{HEX}}[$i] = ${$entry1->{HEX}}[$i];
+            }
+          }
+          invalidateallbuthex($entry2);
+        } elsif ($cmd eq "OVERWRITE") {
+          for (my $i = 0 ; $i < $height2 ; $i++) {
+            if (${$entry1->{HEX}}[$i] !~ m/^0*$/) {
+              ${$entry2->{HEX}}[$i] = ${$entry1->{HEX}}[$i];
+            }
+          }
+          invalidateallbuthex($entry2);
+        } elsif ($cmd eq "INVLINEMASK") {
+          for (my $i = 0 ; $i < $height2 ; $i++) {
+            if (${$entry1->{HEX}}[$i] !~ m/^0*$/) {
+              ${$entry2->{HEX}}[$i] =~ s/\w/0/g;
+            }
+          }
+          invalidateallbuthex($entry2);
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+
+      } elsif (/^SHIFT(UP|DOWN)((?:MAX)?)\s+($NUMBER)\s+(\S+)\s*$/) {
+        my $cmd;
+        my $optmax;
+        my $shift;
+        my $charname;
+        my $entry;
+        my $width;
+        my $height;
+
+        $cmd = $1;
+        $optmax = $2;
+        if ($cmd eq "DOWN") {
+          $shift = todecimal($3);
+        } else {
+          $shift = -1 * todecimal($3);
+        }
+        $charname = $4;
+        if (! defined $nameidx{$charname}) {
+          warn "bdfmangle: no glyph named \"$charname\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname} = unshare($nameidx{$charname});
+        $entry = $nameidx{$charname};
+        if (! validatehex($entry)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width = $entry->{WIDTH};
+        $height = $entry->{HEIGHT};
+
+	if ($optmax eq "MAX") {
+	  my ($topspaces,$botspaces) = vspacehex($entry);
+	  if ($shift > $botspaces) {
+	    $shift = $botspaces;
+	  } elsif ($shift < - $topspaces) {
+	    $shift = - $topspaces;
+	  }
+	} elsif ($shift > $height || $shift < - $height) {
+	  $shift = $height;
+	}
+	my $empty = $entry->{HEX}[0];
+	$empty =~ s/[1-9A-Fa-f]/0/g;
+	if ($shift > 0) {
+	  $entry->{HEX} = [ ($empty) x $shift, @{$entry->{HEX}}[0 .. ($#{$entry->{HEX}} - $shift)] ];
+          invalidateallbuthex($entry);
+	} elsif ($shift < 0) {
+	  $shift = - $shift;
+	  $entry->{HEX} = [ @{$entry->{HEX}}[$shift .. $#{$entry->{HEX}}], ($empty) x $shift ];
+          invalidateallbuthex($entry);
+	}
+
+      } elsif (/^(INVERT|VFLIP(?:BBX)?)\s+(\S+)\s*$/) {
+        my $cmd;
+        my $charname;
+        my $entry;
+        my $width;
+        my $height;
+
+        $cmd = $1;
+        $charname = $2;
+        if (! defined $nameidx{$charname}) {
+          warn "bdfmangle: no glyph named \"$charname\"\n";
+          $abort = 1;
+          next LINE;
+        }
+        $nameidx{$charname} = unshare($nameidx{$charname});
+        $entry = $nameidx{$charname};
+        if (! validatehex($entry)) {
+          $abort = 1;
+          next LINE;
+        }
+        $width = $entry->{WIDTH};
+        $height = $entry->{HEIGHT};
+
+        if ($cmd eq "VFLIPBBX") {
+          @{$entry->{HEX}} = reverse(@{$entry->{HEX}});
+        } elsif ($cmd eq "VFLIP") {
+          my ($topspaces,$botspaces) = vspacehex($entry);
+          if ($topspaces <= $#{$entry->{HEX}}) {
+            my @aux = @{$entry->{HEX}}[$topspaces .. ($#{$entry->{HEX}} - $botspaces)];
+            @{$entry->{HEX}}[$topspaces .. ($#{$entry->{HEX}} - $botspaces)] = reverse(@aux);
+          }
+        } elsif ($cmd eq "INVERT") {
+          my $blackpixels = blackpixels($width);
+          my $l = length(${$entry->{HEX}}[0]);
+          for (my $i = 0 ; $i < $height ; $i++) {
+            my $b = "";
+            for (my $j = 0 ; $j < $l ; $j += 2) {
+              $b .= (sprintf "%02X", (hex(substr($blackpixels,$j,2))
+                                      ^ hex(substr(${$entry->{HEX}}[$i],$j,2))));
+            }
+            ${$entry->{HEX}}[$i] = $b;
+          }
+        } else {
+          die "bdfmangle: This can't happen";
+        }
+        invalidateallbuthex($entry);
+
+      } elsif (/^COPYTO\s+(\S+)\s+(\S+)\s*$/) {
+        my $oldcharname = $1;
+        my $newcharname = $2;
+        if (defined $nameidx{$oldcharname}) {
+          $nameidx{$newcharname} = clone($nameidx{$oldcharname});
+          $nameidx{$newcharname}->{NAME} = $newcharname;
+        } else {
+          warn "bdfmangle: no glyph named \"$oldcharname\"\n";
+          $abort = 1;
+        }
+
+      } elsif (/^COPYTOENC((?:PN)?)\s+(\S+)\s+($NUMBER)\s*$/o) {
+        my $pn = $1;
+        my $oldcharname = $2;
+        my $newenc = todecimal($3);
+        if (defined $nameidx{$oldcharname}) {
+          if ($pn eq "PN" && defined $encidx{$newenc}) {
+            my $preservedname = $encidx{$newenc}->{NAME};
+            $encidx{$newenc} = clone($nameidx{$oldcharname});
+            $encidx{$newenc}->{NAME} = $preservedname;
+          } else {
+            $encidx{$newenc} = clone($nameidx{$oldcharname});
+          }
+        } else {
+          warn "bdfmangle: no glyph named \"$oldcharname\"\n";
+          $abort = 1;
+        }
+
+      } elsif (/^COPYENCTO\s+($NUMBER)\s+(\S+)\s*$/o) {
+        my $oldenc = todecimal($1);
+        my $newcharname = $2;
+        if (defined $encidx{$oldenc}) {
+          $nameidx{$newcharname} = clone($encidx{$oldenc});
+          $nameidx{$newcharname}->{NAME} = $newcharname;
+        } else {
+          warn "bdfmangle: no glyph with encoding $oldenc\n";
+          $abort = 1;
+        }
+
+      } elsif (/^COPYENCTOENC((?:PN)?)\s+($NUMBER)\s+($NUMBER)\s*$/o) {
+        my $pn = $1;
+        my $oldenc = todecimal($2);
+        my $newenc = todecimal($3);
+        if (defined $encidx{$oldenc}) {
+          if ($pn eq "PN" && defined $encidx{$newenc}) {
+            my $preservedname = $encidx{$newenc}->{NAME};
+            $encidx{$newenc} = clone($encidx{$oldenc});
+            $encidx{$newenc}->{NAME} = $preservedname;
+          } else {
+            $encidx{$newenc} = clone($encidx{$oldenc});
+          }
+        } else {
+          warn "bdfmangle: no glyph with encoding $oldenc\n";
+          $abort = 1;
+        }
+
+      } elsif (/^INCLUDE\s+(\S+)\s*$/o) {
+        my $fname = $1;
+        $fname =~ s/(\$(\{\w+\}|\w+))/envexpand($1)/ge;
+        processmgl($fname, $reccnt+1);
+
+      } elsif (/^ABORT((\s+$NUMBER)?)\s*$/o) {
+        my $aux = $1;
+        if ($aux =~ /($NUMBER)/) {
+          exit(todecimal($1));
+        } else {
+          exit(0);
+        }
+
+      } elsif (/^RETURN\s*$/o) {
+        close($mglhandle);
+        return(0);
+
+      } elsif (/^MESSAGE\s.*/) {
+        s/^MESSAGE\s+//;
+        chomp;
+        warn "$_\n";
+
+      } elsif (/^$/) {
+        ;
+
+      } elsif (/^FONT\s+(.*\S)\s*$/) {
+        my $newfont = $1;
+        if ($newfont !~ /^-/) {
+          $newfont = "-$newfont";
+        }
+        my $i = ($newfont =~ s/-/-/g);
+        $preamble =~ m/\nFONT[ \t]([^\n]*)\n/;
+        my $font = $1;
+        $font =~ s/(-[^-]*){0,$i}$/$newfont/;
+        $preamble =~ s/\nFONT[ \t][^\n]*\n/\nFONT $font\n/;
+
+      } elsif (/^DEFAULT_CHAR\s+(.*\S)\s*$/) {
+        my $newdchar = $1;
+        $newdchar = todecimal($newdchar);
+        $preamble =~ s/\nDEFAULT_CHAR[ \t][^\n]*\n/\nDEFAULT_CHAR $newdchar\n/;
+
+      } elsif (/^(CHARSET_REGISTRY\s+.*\S)\s*$/) {
+        my $newreg = $1;
+        $preamble =~ s/\nCHARSET_REGISTRY[ \t][^\n]*\n/\n$newreg\n/;
+
+      } elsif (/^(CHARSET_ENCODING\s+.*\S)\s*$/) {
+        my $newenc = $1;
+        $preamble =~ s/\nCHARSET_ENCODING[ \t][^\n]*\n/\n$newenc\n/;
+
+      } elsif (/^NODEFAULT\s*$/) {
+        $dfltstat = 0;
+
+      } elsif (/^DEFAULT\s+(\S+)\s*$/) {
+        if (defined $nameidx{$1}) {
+          $dflt = clone($nameidx{$1});
+          $dfltstat = 1;
+        } else {
+          warn "bdfmangle: no default glyph named \"$1\"\n";
+          $abort = 1;
+          $dflt = '';
+          $dfltstat = 0;
+        }
+
+      } elsif (/^DEFAULTENC\s+($NUMBER)\s*$/o) {
+        my $charenc = todecimal($1);
+        if (defined $encidx{$charenc}) {
+          $dflt = clone($encidx{$charenc});
+          $dfltstat = 1;
+        } else {
+          warn "bdfmangle: no default glyph with encoding $charenc\n";
+          $abort = 1;
+          $dflt = '';
+          $dfltstat = 0;
+        }
+
+      } elsif (/^DEFAULTOMIT\s*$/) {
+        $dfltstat = 2;
+
+      } elsif (/^UNDEF\s+(\S+)\s*$/o) {
+        my $charname = $1;
+        if (defined $nameidx{$charname}) {
+          delete $nameidx{$charname};
+        }
+
+      } elsif (/^UNDEFENC\s+($NUMBER)\s*$/o) {
+        my $charenc = todecimal($1);
+        if (defined $encidx{$charenc}) {
+          delete $encidx{$charenc};
+        }
+
+      } else {
+        die "bdfmangle: illegal input in mangle file: ${_}bdfmangle: stopped\n";
+      }
+    }
+
+  }
+
+  close($mglhandle);
+}
+
+
+### main ###
+
+
+if ($#ARGV >= 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "--help")) {
+  die "Usage: bdfmangle [OPTION]... BDFFILE MGLFILE...
+Transform a bdf font file, write the resulting bdf file to standard output.
+
+  -h, --help                  output this usage message and exit
+  -c, --compatibility-mode    start bdfmangle in compatibility mode
+
+When BDFFILE or MGLFILE is '-', read standard input. To read more than
+one BDFFILE use 'cat BDFFILE1 BDFFILE2 ... | bdfmangle - MGLFILE...'.
+
+For information on mgl commands use \"man bdfmangle\".
+";
+}
+
+if ($#ARGV >= 0 && ($ARGV[0] eq "-c" || $ARGV[0] eq "--compatibility-mode")) {
+  $compatmode = 1;
+  shift;
+}
+
+if ($#ARGV < 1) {
+  die "Usage: bdfmangle [OPTION]... BDFFILE MANGLEFILE...\n"
+}
+
+my $bdffile = shift;
+processbdf($bdffile);
+
+while (my $manglefile = shift) {
+  processmgl($manglefile, 0);
+}
+
+die "bdfmangle: stopped\n" if $abort;
+
+die "bdfmangle: no PUT commands, therefore no output was generated\n" if ($cnt == 0);
+
+$preamble =~ s/\nCHARS [^\n]*\n/\nCHARS $cnt\n/;
+print $preamble;
+print $outtext;
+print "ENDFONT\n";
+
+exit(0);

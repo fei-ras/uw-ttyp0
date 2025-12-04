@@ -1,0 +1,37 @@
+# The UW ttyp0 fonts come in thirteen sizes (from 11px to 80px)
+# and three styles (regular, bold, italic). OTB fonts are always
+# Unicode-encoded, other encodings can be generated on the fly by the
+# font server.
+#
+# Edit this file to specify which of the resulting size/style
+# combinations you want.
+#
+# **********************************************************************
+#
+# SIZES AND STYLES:
+#
+# The following combinations of font size and style are available:
+#
+#     Regular: 11  12  13  14  15  16  17  18  22  30  40  60  80
+#     Bold:    11b 12b 13b 14b 15b 16b 17b 18b 22b 30b 40b 60b 80b
+#     Italic:                  15i 16i 17i 18i     30i 40i 60i 60i
+#
+# The 60px and 80px fonts are obtained from the 30px and 40px fonts by
+# naive scaling using bdfresize. These fonts are intended only for high
+# resolution displays. At low resolutions, they are noticably blocky.
+#
+# The default is the entire list of size/style combinations up to
+# size 40. If you want more or less combinations, change the following
+# line accordingly:
+
+SIZES_OTB = 11 12 13 14 15 16 17 18 22 30 40 11b 12b 13b 14b 15b 16b 17b 18b 22b 30b 40b 15i 16i 17i 18i 30i 40i
+
+# **********************************************************************
+# 
+# In principle, OTB fonts may contain the bitmap data for several sizes
+# of a font, so  generating just three OTB fonts (regular, bold, italic)
+# should be sufficient. Unfortunately, many programs seem to be unable
+# to handle multi-size OTB fonts correctly, therefore they are not
+# supported by this distribution.
+#
+# **********************************************************************

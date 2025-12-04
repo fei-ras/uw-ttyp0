@@ -1,0 +1,7 @@
+# This file is used in combination with unicode.mgl to ensure that
+# glyphs in the input are arranged according to their unicode order
+# but not duplicated (say, by copying GkSmlMu to SMicro), so that the
+# total number of glyphs is unchanged.
+DEFAULTOMIT
+IFDEF Space COPYTO Space Flag_ReorderOnly
+IFDEF Braille0 COPYTO Braille0 Flag_ReorderOnly

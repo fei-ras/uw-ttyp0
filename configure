@@ -1,0 +1,457 @@
+#!/bin/sh
+
+NL='
+'
+CR=`printf "\015"`
+UPPER=ABCDEFGHIJKLMNOPQRSTUVWXYZ
+LOWER=abcdefghijklmnopqrstuvwxyz
+ALPHA=$UPPER$LOWER
+ALNUM=0123456789_$UPPER$LOWER
+
+# Definitions that we check:
+GNUMAKE=make
+DEFPERL=perl
+DEFBDFRESIZE=bdfresize
+DEFBDFTOPCF=bdftopcf
+DEFBDF2PSF=bdf2psf
+DEFVTFONTCVT=vtfontcvt
+if faketime -f '1970-01-01 00:00:01' echo '' >/dev/null 2>/dev/null ; then
+  # fonttosfnt puts a date stamp in the output file.
+  # if available, use faketime to generate reproducible results:
+  DEFFONTTOSFNT="faketime -f '1970-01-01 00:00:01' fonttosfnt"
+else
+  DEFFONTTOSFNT=fonttosfnt
+fi
+
+# Composing the success/failure message:
+SUCCESS1="BDF fonts"
+SUCCESS2=""
+SUCCESS3=""
+SUCCESS4=" FreeBSD (syscons), NetBSD, and OpenBSD"
+FAILURE=""
+
+PREFIX=/usr
+
+case `lsb_release -a 2> /dev/null` in
+
+*NixOS*)
+   DFLTOTBDIR='$prefix/share/fonts/X11/misc'
+   DFLTOTBDIRMAKE='$(PREFIX)/share/fonts/X11/misc'
+   DFLTCONSLINUXDIR='$prefix/share/consolefonts'
+   DFLTCONSLINUXDIRMAKE='$(PREFIX)/share/consolefonts' ;;
+
+*) # There does not seem to be any standard directory for OTB fonts.
+   # We check for some plausible choices whether they are already in use:
+   DFLTOTBDIR=`ls -d /usr/share/fonts/*/[Uu][Ww][-_][Tt]typ0/. 2>/dev/null | head -1 | sed -e 's,/\.$,,'`
+   if test -z "$DFLTOTBDIR" ; then
+     DFLTOTBDIR=`ls -d /usr/share/fonts/*/[Uu][Ww][Tt]typ0/. 2>/dev/null | head -1 | sed -e 's,/\.$,,'`
+     if test -z "$DFLTOTBDIR" ; then
+       DFLTOTBDIR=`ls -d /usr/share/fonts/*/[Tt]typ0/. 2>/dev/null | head -1 | sed -e 's,/\.$,,'`
+       if test -z "$DFLTOTBDIR" ; then
+	 DFLTOTBDIR=`ls -d /usr/share/fonts/[Oo][Tt][Bb]/. 2>/dev/null | head -1 | sed -e 's,/\.$,/uw-ttyp0,'`
+	 if test -z "$DFLTOTBDIR" ; then
+	   DFLTOTBDIR=`ls -d /usr/share/fonts/[Oo]pentype/*/*.otb 2>/dev/null | head -1 | sed -e 's,/[^/]*/[^/]*$,/uw-ttyp0,'`
+	   if test -z "$DFLTOTBDIR" ; then
+	     DFLTOTBDIR=`ls -d /usr/share/fonts/[Tt]ruetype/*/*.otb 2>/dev/null | head -1 | sed -e 's,/[^/]*/[^/]*$,/uw-ttyp0,'`
+	     if test -z "$DFLTOTBDIR" ; then
+	       DFLTOTBDIR=`ls -d /usr/share/fonts/X11/misc/*.otb 2>/dev/null | head -1 | sed -e 's,/[^/]*$,,'`
+	       if test -z "$DFLTOTBDIR" ; then
+		 DFLTOTBDIR=`ls -d /usr/share/fonts/X11/*/*.otb 2>/dev/null | head -1 | sed -e 's,/[^/]*/[^/]*$,/uw-ttyp0,'`
+		 if test -z "$DFLTOTBDIR" ; then
+		   DFLTOTBDIR=/usr/share/fonts/OTB/uw-ttyp0
+		 fi
+	       fi
+	     fi
+	   fi
+	 fi
+       fi
+     fi
+   fi
+   DFLTOTBDIRMAKE=`printf "%s\n" "$DFLTOTBDIR" | sed -e 's,^/usr,$(PREFIX),'`
+   DFLTOTBDIR=`printf "%s\n" "$DFLTOTBDIR" | sed -e 's,^/usr,$prefix,'`
+
+   # The name of the directory where console fonts are installed varies
+   # among different Linux distributions; the general pattern seems to be
+   # /(usr)?/(share)?/(lib)?/(kbd)?/consolefonts.
+   # We check whether some existing directory matches that pattern:
+   DFLTCONSLINUXDIR=/usr/share/linux-consolefonts
+   for i1 in '' /usr ; do
+     for i2 in /share '' ; do
+       for i3 in /lib '' ; do
+	 for i4 in /kbd '' ; do
+	   if test -d "$i1$i2$i3$i4/consolefonts" ; then
+	     DFLTCONSLINUXDIR="$i1$i2$i3$i4/consolefonts"
+	   fi
+	 done
+       done
+     done
+   done
+   case $DFLTCONSLINUXDIR in
+   /usr/*) DFLTCONSLINUXDIRMAKE=`printf "%s\n" "$DFLTCONSLINUXDIR" | sed -e 's,^/usr,$(PREFIX),'`
+           DFLTCONSLINUXDIR=`printf "%s\n" "$DFLTCONSLINUXDIR" | sed -e 's,^/usr,$prefix,'` ;;
+   *)      DFLTCONSLINUXDIRMAKE=$DFLTCONSLINUXDIR ;;
+   esac
+esac
+
+# We try to find out a reasonable naming convention for Linux console fonts:
+if test -e /etc/default/console-setup \
+     && ! test -e /etc/vconsole.conf ; then
+  DFLTCONSLINUXNAMING=console-setup
+elif ls "$DFLTCONSLINUXDIR"/*.psfu* >/dev/null 2>/dev/null ; then
+  DFLTCONSLINUXNAMING=psfu
+else
+  DFLTCONSLINUXNAMING=standard
+fi
+
+OTBDIRDEFINED=
+CONSLINUXDIRDEFINED=
+CONSLINUXNAMINGDEFINED=
+
+SEDCMD=''
+SEDCMD="$SEDCMD/^OTBDIR *=/s$CR=.*$CR= $DFLTOTBDIRMAKE$CR$NL"
+SEDCMD="$SEDCMD/^CONSLINUXDIR *=/s$CR=.*$CR= $DFLTCONSLINUXDIRMAKE$CR$NL"
+SEDCMD="$SEDCMD/^CONSLINUXNAMING *=/s$CR=.*$CR= $DFLTCONSLINUXNAMING$CR$NL"
+SEDCMD="$SEDCMD/^FONTTOSFNT *=/s$CR=.*$CR= $DEFFONTTOSFNT$CR$NL"
+
+USAGE='Usage: ./configure --help
+       or ./configure [--Variable=Value] ... [Variable=Value]
+
+Variables (default values in brackets):
+
+  Directories for font installation:
+    X11 (general):               prefix [/usr]
+    X11 PCF fonts:               pcfdir [$prefix/share/fonts/X11/misc]
+    X11 OTB fonts:               otbdir ['"$DFLTOTBDIR"']
+    Linux console fonts:         conslinuxdir ['"$DFLTCONSLINUXDIR"']
+    FreeBSD console fonts
+      * vt:                      consfbsdvtdir [$prefix/share/vt/fonts]
+      * syscons:                 consfbsdscdir [$prefix/share/syscons/fonts]
+    NetBSD console fonts:        consnbsddir [$prefix/src/sys/dev/wsfont]
+    OpenBSD console fonts:       consobsddir [$prefix/src/sys/dev/wsfont]
+
+  If the bdfmangle utility should be installed as well:
+			         bindir [$prefix/bin]
+			         mandir [$prefix/man]
+
+  If the documentation files should be installed as well:
+			         docdir [$prefix/share/doc/fonts-uw-ttyp0]
+
+  If perl and/or the font generation utilities are not on the current PATH,
+  specify full path names for those that you need:
+    General:                     perl ['"$DEFPERL"']
+    X11 PCF fonts:               bdftopcf ['"$DEFBDFTOPCF"']
+    X11 OTB fonts:               fonttosfnt ['"$DEFFONTTOSFNT"']
+    Linux console fonts:         bdf2psf ['"$DEFBDF2PSF"']
+    FreeBSD (vt) console fonts:  vtfontcvt ['"$DEFVTFONTCVT"']
+    Scaled big fonts (60-80px):  bdfresize ['"$DEFBDFRESIZE"']
+
+  These should probably not be changed:
+			         shell [/bin/sh]
+			         bdfmangle [$perl bin/bdfmangle]
+			         mkshallow [$perl bin/mkshallow]
+			         bdftobsdh [$perl bin/bdftobsdh]
+			         bdftosyscons [$perl bin/bdftosyscons]
+			         bdftoequiv [$perl bin/bdftoequiv]
+			         bdftorep [$perl bin/bdftorep]
+
+  Naming convention for Linux console fonts (standard, psfu, console-setup):
+                                 conslinuxnaming ['"$DFLTCONSLINUXNAMING"']
+
+"--installdirs=dir" sets all font installation directories to dir.
+"--private" or "-p" is a shortcut for "--installdirs=$HOME/.fonts";
+"--lprivate" or "-lp" is short for "--installdirs=$HOME/.local/share/fonts".
+'
+
+case $1 in
+  --help|-help|--h|-h) cat <<EOT
+$USAGE
+EOT
+          exit 0 ;;
+esac
+
+while test $# -ne 0 ; do
+  VAR=
+  VALUE=
+  ARG=$1
+  shift
+
+  case $ARG in
+  --private|-private|--p|-p)
+          ARG="installdirs=$HOME/.fonts" ;;
+  --lprivate|-lprivate|--lp|-lp)
+          ARG="installdirs=$HOME/.local/share/fonts" ;;
+  esac
+
+  case $ARG in
+  --*=*)  VAR=`expr xx"$ARG" : 'xx--\(['$ALPHA']['$ALNUM']*\)=.*' 2>/dev/null`
+          VALUE=`expr xx"$ARG" : 'xx--['$ALPHA']['$ALNUM']*=\(.*\)' 2>/dev/null` ;;
+  -*=*)   VAR=`expr xx"$ARG" : 'xx-\(['$ALPHA']['$ALNUM']*\)=.*' 2>/dev/null`
+          VALUE=`expr xx"$ARG" : 'xx-['$ALPHA']['$ALNUM']*=\(.*\)' 2>/dev/null` ;;
+  *=*)    VAR=`expr xx"$ARG" : 'xx\(['$ALPHA']['$ALNUM']*\)=.*' 2>/dev/null`
+          VALUE=`expr xx"$ARG" : 'xx['$ALPHA']['$ALNUM']*=\(.*\)' 2>/dev/null` ;;
+  *)      cat <<EOT
+configure: illegal argument $ARG
+
+$USAGE
+EOT
+          exit 1 ;;
+  esac
+
+  case $VAR in
+  '')     cat <<EOT
+configure: illegal variable name in $ARG
+
+$USAGE
+EOT
+          exit 1 ;;
+  esac
+
+  case $VALUE in
+  *$NL*)    cat <<EOT
+configure: newline is not permitted in assignment $ARG
+
+$USAGE
+EOT
+            exit 1 ;;
+  *$CR*)    cat <<EOT
+configure: character CR is not permitted in assignment $ARG
+
+$USAGE
+EOT
+            exit 1 ;;
+  *[\&\\]*) VALUE=`printf '%s' "$VALUE" | sed -e 's/\\([&\\\\]\\)/\\\\\\1/g'` ;;
+  esac
+
+  UCVAR=`echo "$VAR" | tr $LOWER $UPPER`
+  case $UCVAR in
+  INSTALLDIRS) set "pcfdir=$VALUE" "otbdir=$VALUE" "conslinuxdir=$VALUE" "consfbsdvtdir=$VALUE" "consfbsdscdir=$VALUE" "consnbsddir=$VALUE" "consobsddir=$VALUE" ${1+"$@"}
+               continue ;;
+  PERL) DEFPERL=$VALUE ;;
+  BDFRESIZE) DEFBDFRESIZE=$VALUE ;;
+  BDFTOPCF) DEFBDFTOPCF=$VALUE ;;
+  FONTTOSFNT) DEFFONTTOSFNT=$VALUE ;;
+  BDF2PSF) DEFBDF2PSF=$VALUE ;;
+  VTFONTCVT) DEFVTFONTCVT=$VALUE ;;
+  PREFIX) PREFIX=$VALUE ;;
+  OTBDIR) OTBDIRDEFINED=y ;;
+  CONSLINUXDIR) CONSLINUXDIRDEFINED=y ;;
+  CONSLINUXNAMING) CONSLINUXNAMINGDEFINED=y
+    case $VALUE in
+    standard|psfu|console-setup) ;;
+    *) cat <<'EOT'
+conslinuxnaming must be set to "standard", "psfu", or "console-setup"
+
+Configuration stopped.
+
+EOT
+       exit 1 ;;
+    esac ;;
+  esac
+
+  if grep "^$UCVAR *=" Makefile.in >/dev/null 2>/dev/null ; then
+    SEDCMD="$SEDCMD/^$UCVAR *=/s$CR=.*$CR= $VALUE$CR$NL"
+  else
+    cat <<EOT
+configure: no such variable: $ARG
+
+$USAGE
+EOT
+    exit 1
+  fi
+
+done
+
+if eval "$DEFPERL -e 'print; exit 0;'" </dev/null >/dev/null 2>/dev/null ; then
+  :
+else
+  cat <<'EOT'
+No perl found.
+You must install perl and/or change your $PATH to include perl and/or
+specify the path of perl using --perl=/path/to/perl before you can
+install UW ttyp0.
+
+Configuration stopped.
+
+EOT
+  exit 1
+fi
+
+if type make >/dev/null 2>/dev/null ||
+     type gmake >/dev/null 2>/dev/null ||
+     type gnumake >/dev/null 2>/dev/null ; then
+  :
+else
+  cat <<'EOT'
+No make found.
+You must install GNU make and/or change your $PATH to include GNU make
+before you can install UW ttyp0.
+
+Configuration stopped.
+
+EOT
+  exit 1
+fi
+
+if make --version >/dev/null 2>/dev/null &&
+     make --version | grep GNU >/dev/null 2>/dev/null ; then
+  :
+elif gmake --version >/dev/null 2>/dev/null &&
+       gmake --version | grep GNU >/dev/null 2>/dev/null ; then
+  GNUMAKE=gmake
+  cat <<EOT
+The "make" program installed on your computer is different from
+GNU make, however GNU make is available under the name "gmake". Use
+"gmake" instead of "make" to install UW ttyp0.
+
+EOT
+elif gnumake --version >/dev/null 2>/dev/null &&
+       gnumake --version | grep GNU >/dev/null 2>/dev/null ; then
+  GNUMAKE=gnumake
+  cat <<EOT
+The "make" program installed on your computer is different from
+GNU make, however GNU make is available under the name "gnumake". Use
+"gnumake" instead of "make" to install UW ttyp0.
+
+EOT
+else
+  cat <<EOT
+The "make" program installed on your computer is different from
+GNU make; however the installation routine of UW ttyp0 relies on
+features that are specific to GNU make. Probably your "make" program
+will not be sufficient; in this case, you must install GNU make first.
+
+EOT
+fi
+
+if eval "$DEFBDFTOPCF <bdf/t0-16.bdf" >/dev/null 2>/dev/null ; then
+  SUCCESS1="$SUCCESS1, PCF fonts"
+  SUCCESS2=","
+else
+  FAILURE="$FAILURE
+If you also want to generate and install PCF fonts for X11, you must
+first install bdftopcf and/or change your \$PATH to include bdftopcf
+and/or specify the path of bdftopcf using --bdftopcf=/path/to/bdftopcf.
+"
+fi
+
+if eval "$DEFFONTTOSFNT -o /tmp/co$$nf bdf/t0-16.bdf" >/dev/null 2>/dev/null ; then
+  SUCCESS1="$SUCCESS1, OTB fonts"
+  SUCCESS2=","
+else
+  FAILURE="$FAILURE
+If you also want to generate and install OTB fonts for X11, you must
+first install fonttosfnt and/or change your \$PATH to include fonttosfnt
+and/or specify the path of fonttosfnt using --fonttosfnt=/path/to/fonttosfnt.
+"
+fi
+rm -f /tmp/co$$nf >/dev/null 2>/dev/null
+
+if eval "$DEFBDF2PSF --fb - /dev/null /dev/null 256 /dev/null <bdf/t0-16.bdf" >/dev/null 2>/dev/null ; then
+  SUCCESS3="$SUCCESS3 Linux,"
+else
+  FAILURE="$FAILURE
+If you also want to generate and install PSF fonts for the Linux console,
+you must first install bdf2psf and/or change your \$PATH to include bdf2psf
+and/or specify the path of bdf2psf using --bdf2psf=/path/to/bdf2psf.
+"
+fi
+
+if eval "$DEFVTFONTCVT -w 8 -h 16 bdf/t0-16.bdf bdf/t0-16b.bdf /dev/null" >/dev/null 2>/dev/null ; then
+  SUCCESS3="$SUCCESS3 FreeBSD (vt),"
+else
+  FAILURE="$FAILURE
+If you also want to generate and install fonts for the FreeBSD (vt) console,
+you must first install vtfontcvt and/or change your \$PATH to include vtfontcvt
+and/or specify the path of vtfontcvt using --vtfontcvt=/path/to/vtfontcvt.
+"
+fi
+
+if eval "$DEFBDFRESIZE <bdf/t0-16.bdf" >/dev/null 2>/dev/null ; then
+  :
+else
+  FAILURE="$FAILURE
+You can generate fonts with size 11 to 40. If you also want fonts with
+very large sizes (height 60 or 80), you must first install bdfresize
+and/or change your \$PATH to include bdfresize and/or specify the path
+of bdfresize using --bdftoresize=/path/to/bdfresize.
+"
+fi
+
+if sed -e "$SEDCMD" <Makefile.in >Makefile; then
+  cat <<EOT
+Configuration successful.
+
+You can generate $SUCCESS1$SUCCESS2 and fonts for
+the$SUCCESS3$SUCCESS4 console.
+$FAILURE
+You can still select which font formats/sizes/styles should be generated
+by editing "TARGETS.dat" and then the appropriate "TARGETS_{FONTTYPE}.dat"
+before running "$GNUMAKE".
+
+You can still select your preferred stylistic variants by editing
+"VARIANTS.dat" before running "$GNUMAKE".
+
+EOT
+
+  case $OTBDIRDEFINED in
+  y) ;;
+  *) case $DFLTOTBDIR in
+     \$prefix/*) DFLTOTBDIR=$PREFIX/`printf '%s\n' "$DFLTOTBDIR" | sed -e 's,^\$prefix/,,'`
+     esac
+     echo "If you generate OTB fonts, they will be installed in
+\"$DFLTOTBDIR\".
+To specify another directory, use --otbdir=/path/to/otbdir.
+" ;;
+  esac
+
+  case $CONSLINUXDIRDEFINED in
+  y) ;;
+  *) case $DFLTCONSLINUXDIR in
+     \$prefix/*) DFLTCONSLINUXDIR=$PREFIX/`printf '%s\n' "$DFLTCONSLINUXDIR" | sed -e 's,^\$prefix/,,'`
+     esac
+     echo "If you generate PSF fonts for the Linux console, they will be installed in
+\"$DFLTCONSLINUXDIR\".
+To specify another directory, use --conslinuxdir=/path/to/conslinuxdir.
+" ;;
+  esac
+
+  case $CONSLINUXNAMINGDEFINED in
+  y) ;;
+  *) case $DFLTCONSLINUXNAMING in
+     standard) echo "It seems that you do not use Linux with the console-setup package.
+If you generate PSF fonts for the Linux console fonts, they will therefore be
+installed using the \"standard\" naming convention. To specify another naming
+convention, use --conslinuxnaming=psfu or --conslinuxnaming=console-setup.
+Further information can be found in TARGETS_CONS_LINUX.dat.
+" ;;
+     psfu) echo "It seems that you do not use the console-setup package for Linux and that
+your system uses the \".psfu\" suffix to mark console fonts that include
+a Unicode mapping table. If you generate PSF fonts for the Linux console,
+they will therefore be installed using the \"psfu\" naming convention.
+To specify another naming convention, use --conslinuxnaming=standard or
+--conslinuxnaming=console-setup. Further information can be found in
+TARGETS_CONS_LINUX.dat.
+" ;;
+     console-setup) echo "It seems that you use the console-setup package for Linux. If you
+generate Linux console fonts, they will therefore be installed using the
+\"console-setup\" naming convention. This implies in particular that
+certain console fonts will be renamed during the installation process in
+order to match console-setup's codeset names. To specify another naming
+convention, use --conslinuxnaming=standard or --conslinuxnaming=psfu.
+Further information can be found in TARGETS_CONS_LINUX.dat.
+" ;;
+     esac
+  esac
+
+  exit 0
+
+else
+  cat <<EOT
+Could not create Makefile.
+
+Configuration stopped.
+
+EOT
+  exit 1
+fi  
+

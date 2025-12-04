@@ -1,0 +1,24 @@
+# The UW ttyp0 fonts come in thirteen sizes (from 11px to 80px). The
+# fonts for the FreeBSD console (vt device) are always Unicode encoded;
+# they contain bitmaps for both the regular and the bold style.
+# 
+# Edit this file to specify which of the sizes you want.
+#
+# **********************************************************************
+#
+# SIZES:
+#
+# The following sizes are available:
+#
+#     11  12  13  14  15  16  17  18  22  30  40  60  80
+#
+# The 60px and 80px fonts are obtained from the 30px and 40px fonts by
+# naive scaling using bdfresize. These fonts are intended only for high
+# resolution displays. At low resolutions, they are noticably blocky.
+#
+# The default is the entire list of sizes up to size 40. If you want
+# more or less, change the following line accordingly:
+
+SIZES_CONS_FREEBSD_VT = 11 12 13 14 15 16 17 18 22 30 40
+
+# **********************************************************************

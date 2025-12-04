@@ -1,0 +1,5 @@
+# This file is used after other mgl files that do not contain PUT
+# commands to ensure that the computation is stopped without printing
+# a "no output was generated" warning:
+# bdfmangle BDF_FILE OTHER_MGL_FILES abort.mgl
+ABORT 0

@@ -1,0 +1,23 @@
+.TH BDFTOBSDH "1" "May 2021" "Uwe Waldmann" "User Commands"
+.SH NAME
+bdftobsdh \- convert a bdf font to a .h file for OpenBSD or NetBSD
+.SH SYNOPSIS
+.B bdftobsdh
+\fIBSDFLAVOR\fR \fIBDFFILE\fR
+.SH DESCRIPTION
+\fIBdftobsdh\fR
+converts a bitmap font in bdf format to the .h format used by
+OpenBSD (if \fIBSDFLAVOR\fR equals "-openbsd")
+or NetBSD (if \fIBSDFLAVOR\fR equals "-netbsd"
+and prints the result to standard output.
+.SH LIMITATIONS
+\fIBdftobsdh\fR
+assumes that all bitmaps in the bdf file are padded to the
+full width and height of the font. This holds for all bdf files in
+the ttyp0 distribution, but it does not hold for arbitrary bdf files.
+If the bitmaps are not padded, the conversion will fail.
+.SH COPYRIGHT
+Copyright \(co 2020-2025 Uwe Waldmann.
+.PP
+Bdftobsdh may be freely used, copied, or modified
+under the terms of the MIT license.
